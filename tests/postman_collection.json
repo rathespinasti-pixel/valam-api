@@ -1,0 +1,67 @@
+{
+  "info": {
+    "name": "Solar Farming Assistant API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000/api" },
+    { "key": "access_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        { "name": "Register", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/auth/register", "body": { "mode": "raw", "raw": "{\n  \"full_name\": \"Demo Farmer\",\n  \"email\": \"demo@farm.com\",\n  \"password\": \"password123\"\n}" } } },
+        { "name": "Login", "request": { "method": "POST", "header": [{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/auth/login", "body": { "mode": "raw", "raw": "{\n  \"email\": \"demo@farm.com\",\n  \"password\": \"password123\"\n}" } } },
+        { "name": "Logout", "request": { "method": "POST", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/auth/logout" } },
+        { "name": "Me", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/auth/me" } },
+        { "name": "Update Profile", "request": { "method": "PUT", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/auth/profile", "body": { "mode": "raw", "raw": "{\n  \"farm_location\": \"Kurunegala\"\n}" } } },
+        { "name": "Change Password", "request": { "method": "PUT", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/auth/change-password", "body": { "mode": "raw", "raw": "{\n  \"current_password\": \"password123\",\n  \"new_password\": \"newpass456\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        { "name": "Get Profile", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/users/profile" } },
+        { "name": "Update Profile", "request": { "method": "PUT", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/users/profile" } },
+        { "name": "View User", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/users/1" } },
+        { "name": "Delete Account", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/users/1" } }
+      ]
+    },
+    {
+      "name": "Chatbot",
+      "item": [
+        { "name": "Ask", "request": { "method": "POST", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/chatbot/ask", "body": { "mode": "raw", "raw": "{\n  \"question\": \"How do I protect my crops from frost?\"\n}" } } },
+        { "name": "History", "request": { "method": "GET", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/chatbot/history" } },
+        { "name": "Delete History Item", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/chatbot/history/1" } }
+      ]
+    },
+    {
+      "name": "Solar Guidance",
+      "item": [
+        { "name": "Get Guides", "request": { "method": "GET", "url": "{{base_url}}/solar/guides" } },
+        { "name": "Get Guide Detail", "request": { "method": "GET", "url": "{{base_url}}/solar/guides/1" } }
+      ]
+    },
+    {
+      "name": "Weather",
+      "item": [
+        { "name": "Current Weather", "request": { "method": "GET", "url": "{{base_url}}/weather/current?location=Kurunegala" } },
+        { "name": "Forecast", "request": { "method": "GET", "url": "{{base_url}}/weather/forecast?location=Kurunegala" } },
+        { "name": "Alerts", "request": { "method": "GET", "url": "{{base_url}}/weather/alerts?location=Kurunegala" } },
+        { "name": "Subscribe", "request": { "method": "POST", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/weather/subscribe", "body": { "mode": "raw", "raw": "{\n  \"location\": \"Kurunegala\"\n}" } } }
+      ]
+    },
+    {
+      "name": "Marketplace",
+      "item": [
+        { "name": "Get Products", "request": { "method": "GET", "url": "{{base_url}}/products" } },
+        { "name": "Get Product Detail", "request": { "method": "GET", "url": "{{base_url}}/products/1" } },
+        { "name": "Get Products By Category", "request": { "method": "GET", "url": "{{base_url}}/products/category/Vegetables" } },
+        { "name": "Add Product", "request": { "method": "POST", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/products", "body": { "mode": "raw", "raw": "{\n  \"name\": \"Fresh Tomatoes\",\n  \"category\": \"Vegetables\",\n  \"price\": 2.5,\n  \"unit\": \"kg\",\n  \"quantity_available\": 100\n}" } } },
+        { "name": "Update Product", "request": { "method": "PUT", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"},{"key":"Content-Type","value":"application/json"}], "url": "{{base_url}}/products/1", "body": { "mode": "raw", "raw": "{\n  \"price\": 3.0\n}" } } },
+        { "name": "Delete Product", "request": { "method": "DELETE", "header": [{"key":"Authorization","value":"Bearer {{access_token}}"}], "url": "{{base_url}}/products/1" } }
+      ]
+    }
+  ]
+}
