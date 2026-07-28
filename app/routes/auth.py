@@ -24,9 +24,11 @@ def register():
     full_name = data.get("full_name")
     email = data.get("email")
     password = data.get("password")
+    phone = data.get("phone")
+    farm_location = data.get("farm_location")
 
-    if not full_name or not email or not password:
-        return error_response("full_name, email and password are required", 400)
+    if not full_name or not email or not password or not phone or not farm_location:
+        return error_response("full_name, email, password, phone, and farm_location are required", 400)
 
     if len(password) < 6:
         return error_response("Password must be at least 6 characters", 400)
