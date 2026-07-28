@@ -23,10 +23,11 @@ def ask():
 
     data = request.get_json(silent=True) or {}
     question = (data.get("question") or "").strip()
+    category = (data.get("category") or "").strip() or None
     if not question:
         return error_response("question is required", 400)
 
-    answer = ask_ai_assistant(question)
+    answer = ask_ai_assistant(question, category)
 
     entry = ChatHistory(user_id=user.id, question=question, answer=answer)
     db.session.add(entry)
