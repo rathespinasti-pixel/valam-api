@@ -5,8 +5,31 @@ from app.extensions import db
 from app.models.weather_subscription import WeatherSubscription
 from app.utils.decorators import success_response, error_response, get_current_user
 from app.utils.weather_client import get_current_weather, get_forecast, get_alerts
+from app.utils.advisory import generate_agro_advisory
 
 weather_bp = Blueprint("weather", __name__, url_prefix="/api/weather")
+
+
+@weather_bp.route("/advisory", methods=["GET"])
+def weather_advisory():
+    """
+    Get weather-based agricultural advisory for a location.
+    Query params: ?location=Vavuniya,LK
+    ---
+    tags: [Weather]
+    """
+    location = request.args.get("location", "Vavuniya,LK")
+    current = get_current_weather(location)
+    forecast_data = get_forecast(location, days=5)
+    advisories = generate_agro_advisory(location, current, forecast_data)
+
+    return success_response({
+        "location": location,
+        "current": current,
+        "forecast": forecast_data,
+        "advisories": advisories,
+    })
+
 
 
 @weather_bp.route("/current", methods=["GET"])

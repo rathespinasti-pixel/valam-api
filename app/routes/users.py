@@ -35,12 +35,54 @@ def update_profile():
         return error_response("User not found", 404)
 
     data = request.get_json(silent=True) or {}
-    for field in ("full_name", "phone", "farm_location", "farm_size_acres"):
+    fields = (
+        "full_name", "phone", "farm_location", "farm_size_acres",
+        "district_asc", "farmer_type", "farming_experience",
+        "main_crops_grown", "preferred_language", "onboarding_completed"
+    )
+    for field in fields:
         if field in data:
             setattr(user, field, data[field])
 
     db.session.commit()
     return success_response(user.to_dict(), message="Profile updated successfully")
+
+
+@users_bp.route("/onboarding", methods=["POST"])
+@jwt_required()
+def save_onboarding():
+    """
+    Save farmer onboarding preferences.
+    ---
+    tags: [Users]
+    """
+    user = get_current_user()
+    if not user:
+        return error_response("User not found", 404)
+
+    data = request.get_json(silent=True) or {}
+    if "full_name" in data:
+        user.full_name = data["full_name"]
+    if "farm_location" in data:
+        user.farm_location = data["farm_location"]
+    if "district_asc" in data:
+        user.district_asc = data["district_asc"]
+    if "farmer_type" in data:
+        user.farmer_type = data["farmer_type"]
+    if "farming_experience" in data:
+        user.farming_experience = data["farming_experience"]
+    if "farm_size_acres" in data:
+        user.farm_size_acres = data["farm_size_acres"]
+    if "main_crops_grown" in data:
+        user.main_crops_grown = data["main_crops_grown"]
+    if "preferred_language" in data:
+        user.preferred_language = data["preferred_language"]
+
+    user.onboarding_completed = True
+    db.session.commit()
+
+    return success_response(user.to_dict(), message="Onboarding profile completed successfully")
+
 
 
 @users_bp.route("/<int:user_id>", methods=["GET"])
