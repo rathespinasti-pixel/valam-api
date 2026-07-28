@@ -16,7 +16,7 @@ def create_app(config_name="development"):
     swagger.init_app(app)
 
     # Import models so Flask-Migrate can detect them
-    from app.models import user, chat, solar_guide, weather_subscription, product  # noqa: F401
+    from app import models as app_models  # noqa: F401
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -25,6 +25,11 @@ def create_app(config_name="development"):
     from app.routes.solar import solar_bp
     from app.routes.weather import weather_bp
     from app.routes.products import products_bp
+    from app.routes.crops import crops_bp
+    from app.routes.crop_guides import crop_guides_bp
+    from app.routes.diagnosis import diagnosis_bp
+    from app.routes.community import community_bp
+    from app.routes.tools import tools_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
@@ -32,6 +37,11 @@ def create_app(config_name="development"):
     app.register_blueprint(solar_bp, url_prefix="/api/solar")
     app.register_blueprint(weather_bp, url_prefix="/api/weather")
     app.register_blueprint(products_bp, url_prefix="/api/products")
+    app.register_blueprint(crops_bp, url_prefix="/api/crops")
+    app.register_blueprint(crop_guides_bp, url_prefix="/api/crop-guides")
+    app.register_blueprint(diagnosis_bp, url_prefix="/api/diagnosis")
+    app.register_blueprint(community_bp, url_prefix="/api/community")
+    app.register_blueprint(tools_bp, url_prefix="/api/tools")
 
     # JWT: check token blacklist (used for logout)
     @jwt.token_in_blocklist_loader

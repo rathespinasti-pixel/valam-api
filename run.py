@@ -40,7 +40,7 @@ def init_db():
         # Import models so SQLAlchemy's metadata knows about every table
         # before create_all() runs (create_app already imports these, but
         # this keeps init_db safe to call standalone too).
-        from app.models import user, chat, solar_guide, weather_subscription, product  # noqa: F401
+        from app import models as app_models  # noqa: F401
 
         existing_tables = set(db.inspect(db.engine).get_table_names())
         db.create_all()
