@@ -56,8 +56,13 @@ def add_crop():
         crop_name=crop_name.strip(),
         variety=data.get("variety"),
         planting_date=planting_date,
-        area_size=data.get("area_size"),
-        current_stage=data.get("current_stage", "Vegetative stage"),
+        planting_method=data.get("planting_method", "Transplanting"),
+        land_size=data.get("land_size") or (user.land_size if user.land_size else 0.5),
+        land_size_unit=data.get("land_size_unit") or (user.land_size_unit if user.land_size_unit else "Acres"),
+        irrigation_type=data.get("irrigation_type") or (user.irrigation_preference if user.irrigation_preference else "Drip Irrigation"),
+        fertilizer_preference=data.get("fertilizer_preference") or (user.fertilizer_preference if user.fertilizer_preference else "Organic"),
+        area_size=data.get("area_size") or f"{data.get('land_size', 0.5)} {data.get('land_size_unit', 'Acres')}",
+        current_stage=data.get("current_stage", "Stage 1: Seedling / Nursery / Transplanting"),
         notes=data.get("notes"),
     )
     db.session.add(crop)
@@ -79,7 +84,11 @@ def update_crop(crop_id):
         return error_response("Crop not found or forbidden", 404)
 
     data = request.get_json(silent=True) or {}
-    for field in ("crop_name", "variety", "area_size", "current_stage", "notes", "is_active"):
+    fields = (
+        "crop_name", "variety", "area_size", "current_stage", "notes", "is_active",
+        "planting_method", "land_size", "land_size_unit", "irrigation_type", "fertilizer_preference"
+    )
+    for field in fields:
         if field in data:
             setattr(crop, field, data[field])
 

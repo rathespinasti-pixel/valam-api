@@ -12,6 +12,11 @@ class DiseaseDiagnosis(db.Model):
     symptoms = db.Column(db.Text, nullable=False)
     diagnosis_result = db.Column(db.Text, nullable=False)
     recommendations = db.Column(db.Text, nullable=False)
+    cause = db.Column(db.Text, nullable=True)
+    organic_treatment = db.Column(db.Text, nullable=True)
+    chemical_treatment = db.Column(db.Text, nullable=True)
+    prevention_advice = db.Column(db.Text, nullable=True)
+    language = db.Column(db.String(10), nullable=True, default="en")
     disclaimer = db.Column(
         db.String(255),
         default="This AI analysis provides guidance only and does not replace professional agricultural extension officer diagnosis.",
@@ -27,6 +32,11 @@ class DiseaseDiagnosis(db.Model):
             "symptoms": self.symptoms,
             "diagnosis_result": self.diagnosis_result,
             "recommendations": self.recommendations,
+            "cause": self.cause,
+            "organic_treatment": self.organic_treatment,
+            "chemical_treatment": self.chemical_treatment,
+            "prevention_advice": self.prevention_advice,
+            "language": self.language or "en",
             "disclaimer": self.disclaimer,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

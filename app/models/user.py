@@ -15,8 +15,16 @@ class User(db.Model):
     farm_location = db.Column(db.String(255), nullable=True)
     farm_size_acres = db.Column(db.Float, nullable=True)
     role = db.Column(db.String(20), default="farmer", nullable=False)
+    farming_category = db.Column(db.String(50), nullable=True, default="Farmer")
+    district = db.Column(db.String(100), nullable=True, default="Vavuniya")
+    ds_division = db.Column(db.String(100), nullable=True, default="Vavuniya Town")
+    gn_division = db.Column(db.String(100), nullable=True)
+    land_size = db.Column(db.Float, nullable=True, default=1.0)
+    land_size_unit = db.Column(db.String(20), nullable=True, default="Acres")
+    irrigation_preference = db.Column(db.String(50), nullable=True, default="Drip Irrigation")
+    fertilizer_preference = db.Column(db.String(50), nullable=True, default="Organic")
     district_asc = db.Column(db.String(100), nullable=True, default="Vavuniya Town")
-    farmer_type = db.Column(db.String(50), nullable=True, default="Small-scale farmer")
+    farmer_type = db.Column(db.String(50), nullable=True, default="Farmer")
     farming_experience = db.Column(db.String(50), nullable=True)
     main_crops_grown = db.Column(db.String(255), nullable=True)
     preferred_language = db.Column(db.String(10), nullable=True, default="en")
@@ -48,11 +56,19 @@ class User(db.Model):
             "farm_location": self.farm_location,
             "farm_size_acres": self.farm_size_acres,
             "role": self.role,
+            "farming_category": self.farming_category or self.farmer_type or "Farmer",
+            "district": self.district or "Vavuniya",
+            "ds_division": self.ds_division or self.district_asc or "Vavuniya Town",
+            "gn_division": self.gn_division,
+            "land_size": self.land_size if self.land_size is not None else self.farm_size_acres,
+            "land_size_unit": self.land_size_unit or "Acres",
+            "irrigation_preference": self.irrigation_preference or "Drip Irrigation",
+            "fertilizer_preference": self.fertilizer_preference or "Organic",
             "district_asc": self.district_asc,
             "farmer_type": self.farmer_type,
             "farming_experience": self.farming_experience,
             "main_crops_grown": self.main_crops_grown,
-            "preferred_language": self.preferred_language,
+            "preferred_language": self.preferred_language or "en",
             "onboarding_completed": self.onboarding_completed,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
