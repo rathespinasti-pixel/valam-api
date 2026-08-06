@@ -105,8 +105,9 @@ def seed_database():
         else:
             admin_user.role = "super_admin"
             admin_user.status = "active"
+            admin_user.set_password("Admin@1234")
             db.session.commit()
-            print("Super Admin account verified: admin@gmail.com")
+            print("Super Admin account verified & password set: admin@gmail.com / Admin@1234")
 
         # Check or create default admin/farmer user
         user = User.query.filter_by(email="demo@valam.lk").first()
