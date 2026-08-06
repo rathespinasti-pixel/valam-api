@@ -21,6 +21,8 @@ class DiseaseDiagnosis(db.Model):
         db.String(255),
         default="This AI analysis provides guidance only and does not replace professional agricultural extension officer diagnosis.",
     )
+    status = db.Column(db.String(20), default="resolved", nullable=False) # pending, approved, rejected, resolved
+    confidence_score = db.Column(db.Float, default=0.92, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
@@ -37,6 +39,8 @@ class DiseaseDiagnosis(db.Model):
             "chemical_treatment": self.chemical_treatment,
             "prevention_advice": self.prevention_advice,
             "language": self.language or "en",
+            "status": self.status or "resolved",
+            "confidence_score": self.confidence_score or 0.92,
             "disclaimer": self.disclaimer,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

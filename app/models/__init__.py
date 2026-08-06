@@ -10,6 +10,11 @@ from app.models.community import CommunityPost, Comment
 from app.models.tool_listing import ToolListing
 from app.models.perenual_plant import PerenualPlant
 from app.models.admin_activity_log import AdminActivityLog
+from app.models.disease_catalog import DiseaseCatalog
+from app.models.system_notification import SystemNotification
+from app.models.user_feedback import UserFeedback
+from app.models.faq_item import FAQItem
+from app.models.system_setting import SystemSetting
 
 __all__ = [
     "User",
@@ -25,4 +30,9 @@ __all__ = [
     "ToolListing",
     "PerenualPlant",
     "AdminActivityLog",
+    "DiseaseCatalog",
+    "SystemNotification",
+    "UserFeedback",
+    "FAQItem",
+    "SystemSetting",
 ]

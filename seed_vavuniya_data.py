@@ -69,6 +69,8 @@ def seed_database():
                     ("chemical_treatment", "TEXT"),
                     ("prevention_advice", "TEXT"),
                     ("language", "VARCHAR(10) DEFAULT 'en'"),
+                    ("status", "VARCHAR(20) DEFAULT 'resolved'"),
+                    ("confidence_score", "FLOAT DEFAULT 0.92"),
                 ]
                 for col_name, col_def in new_diag_cols:
                     if col_name not in existing_diag_cols:
@@ -664,6 +666,106 @@ def seed_database():
             db.session.add_all(tools)
             db.session.commit()
             print("Seeded sample tool listings.")
+
+        # 4. Seed Disease Catalog
+        from app.models.disease_catalog import DiseaseCatalog
+        if DiseaseCatalog.query.count() == 0:
+            diseases = [
+                DiseaseCatalog(
+                    disease_name="Early Blight",
+                    crop_name="Tomato",
+                    symptoms="Concentric dark brown rings on lower leaves, yellowing margins, target spot pattern.",
+                    causes="Fungal pathogen Alternaria solani spread by warm humid air and water splash.",
+                    organic_treatment="Apply copper hydroxide or neem oil solution (5ml/L) weekly.",
+                    chemical_treatment="Spray Mancozeb 75% WP (2g/L) or Difenoconazole at first sign.",
+                    prevention_tips="Mulch soil to prevent rain splash, crop rotation with non-solanaceous crops.",
+                    image_url="https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=600&q=80",
+                ),
+                DiseaseCatalog(
+                    disease_name="Chili Leaf Curl Virus",
+                    crop_name="Green Chili",
+                    symptoms="Upward curling of leaves, stunting of plants, reduced leaf size and pale yellowing.",
+                    causes="Geminivirus transmitted by whitefly (Bemisia tabaci).",
+                    organic_treatment="Spray yellow sticky traps, apply garlic-chili extract or soapy neem oil.",
+                    chemical_treatment="Control whiteflies using Imidacloprid 17.8% SL (0.5ml/L).",
+                    prevention_tips="Use insect-proof nursery mesh nets and remove virus-infected plants immediately.",
+                    image_url="https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?auto=format&fit=crop&w=600&q=80",
+                ),
+                DiseaseCatalog(
+                    disease_name="Yellow Vein Mosaic",
+                    crop_name="Okra",
+                    symptoms="Vein clearing followed by yellow network on leaves, fruit turning pale yellow.",
+                    causes="Bhendi Yellow Vein Mosaic Virus vector by whiteflies.",
+                    organic_treatment="Remove affected plants and spray neem seed kernel extract (5%).",
+                    chemical_treatment="Spray Thiamethoxam 25% WG (0.2g/L) for whitefly vector control.",
+                    prevention_tips="Grow YVMC resistant varieties like Haritha, maintain clean farm borders.",
+                ),
+            ]
+            db.session.add_all(diseases)
+            db.session.commit()
+            print("Seeded sample Disease Catalog.")
+
+        # 5. Seed System Notifications
+        from app.models.system_notification import SystemNotification
+        if SystemNotification.query.count() == 0:
+            notes = [
+                SystemNotification(
+                    title="Intermittent Monsoon Rain Warning",
+                    message="Heavy localized showers expected across Vavuniya District over the next 48 hours. Ensure field drainage channels are clear.",
+                    category="Weather",
+                    target_type="District",
+                    target_value="Vavuniya",
+                    status="sent",
+                ),
+                SystemNotification(
+                    title="Basal Fertilizer Application Reminder",
+                    message="Farmers with 3-week-old Tomato crops should apply top dressing Urea (25kg/ha) now.",
+                    category="Fertilizer",
+                    target_type="Crop",
+                    target_value="Tomato",
+                    status="sent",
+                ),
+            ]
+            db.session.add_all(notes)
+            db.session.commit()
+            print("Seeded sample System Notifications.")
+
+        # 6. Seed FAQs
+        from app.models.faq_item import FAQItem
+        if FAQItem.query.count() == 0:
+            faqs = [
+                FAQItem(
+                    question="How does Valam calculate my crop's growth stage?",
+                    answer="Valam uses your planting date and the standard agricultural growth duration of Vavuniya crop varieties to automatically track age and daily tasks.",
+                    category="Crop Lifecycle",
+                    order_num=1,
+                ),
+                FAQItem(
+                    question="Can I use Valam in native Sri Lankan languages?",
+                    answer="Yes! You can instantly switch between English, Tamil (தமிழ்), and Sinhala (සිංහල) in your profile or navigation menu.",
+                    category="General",
+                    order_num=2,
+                ),
+            ]
+            db.session.add_all(faqs)
+            db.session.commit()
+            print("Seeded sample FAQs.")
+
+        # 7. Seed System Settings
+        from app.models.system_setting import SystemSetting
+        default_settings = {
+            "platform_name": "Valam Smart Agricultural Platform",
+            "contact_email": "support@valam.lk",
+            "contact_phone": "+94 24 222 1234",
+            "default_language": "en",
+            "perenual_api_enabled": "true",
+            "max_upload_size_mb": "10",
+        }
+        for k, v in default_settings.items():
+            if not SystemSetting.query.filter_by(setting_key=k).first():
+                db.session.add(SystemSetting(setting_key=k, setting_value=v))
+        db.session.commit()
+        print("Seeded default System Settings.")
 
         print("Database seeding completed successfully.")
 
