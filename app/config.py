@@ -46,6 +46,10 @@ class Config:
         "WEATHER_API_BASE_URL", "https://api.openweathermap.org/data/2.5"
     )
 
+    # Perenual API provider
+    PERENUAL_API_KEY = os.getenv("PERENUAL_API_KEY") or os.getenv("PRENUAL_API_KEY", "")
+    PERENUAL_BASE_URL = os.getenv("PERENUAL_BASE_URL", "https://perenual.com/api")
+
     # CORS
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 

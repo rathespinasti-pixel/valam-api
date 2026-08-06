@@ -8,6 +8,7 @@ from app.models.crop_guide import CropGuide
 from app.models.disease_diagnosis import DiseaseDiagnosis
 from app.models.community import CommunityPost, Comment
 from app.models.tool_listing import ToolListing
+from app.models.perenual_plant import PerenualPlant
 
 __all__ = [
     "User",
@@ -21,4 +22,5 @@ __all__ = [
     "CommunityPost",
     "Comment",
     "ToolListing",
+    "PerenualPlant",
 ]

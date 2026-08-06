@@ -117,3 +117,13 @@ def delete_crop(crop_id):
     crop.is_active = False
     db.session.commit()
     return success_response(message="Crop removed successfully")
+
+
+@crops_bp.route("/plant-info", methods=["GET"])
+def get_plant_info():
+    """Retrieve Perenual botanical plant info (cached in local DB)."""
+    crop_name = request.args.get("crop_name") or request.args.get("q") or "Tomato"
+    from app.services.perenual_service import PerenualService
+    plant_info = PerenualService.get_plant_info(crop_name)
+    return success_response(plant_info)
+
