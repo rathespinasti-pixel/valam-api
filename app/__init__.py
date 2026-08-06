@@ -30,6 +30,7 @@ def create_app(config_name="development"):
     from app.routes.diagnosis import diagnosis_bp
     from app.routes.community import community_bp
     from app.routes.tools import tools_bp
+    from app.routes.admin import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
@@ -42,6 +43,7 @@ def create_app(config_name="development"):
     app.register_blueprint(diagnosis_bp, url_prefix="/api/diagnosis")
     app.register_blueprint(community_bp, url_prefix="/api/community")
     app.register_blueprint(tools_bp, url_prefix="/api/tools")
+    app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
     # JWT: check token blacklist (used for logout)
     @jwt.token_in_blocklist_loader

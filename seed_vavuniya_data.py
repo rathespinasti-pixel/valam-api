@@ -74,9 +74,39 @@ def seed_database():
                     if col_name not in existing_diag_cols:
                         db.session.execute(text(f"ALTER TABLE disease_diagnoses ADD COLUMN {col_name} {col_def}"))
                         db.session.commit()
+            if "users" in inspector.get_table_names():
+                existing_user_cols = [c['name'] for c in inspector.get_columns('users')]
+                if "status" not in existing_user_cols:
+                    db.session.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'active'"))
+                    db.session.commit()
         except Exception as e:
             db.session.rollback()
             print(f"Note on column migration: {e}")
+
+        # Seed Default Super Admin Account
+        admin_user = User.query.filter_by(email="admin@gmail.com").first()
+        if not admin_user:
+            admin_user = User(
+                full_name="Super Admin",
+                email="admin@gmail.com",
+                phone="+94 77 000 0000",
+                farm_location="Vavuniya, LK",
+                farm_size_acres=5.0,
+                role="super_admin",
+                status="active",
+                district="Vavuniya",
+                ds_division="Vavuniya Town",
+                onboarding_completed=True,
+            )
+            admin_user.set_password("Admin@1234")
+            db.session.add(admin_user)
+            db.session.commit()
+            print("Seeded Super Admin account: admin@gmail.com / Admin@1234")
+        else:
+            admin_user.role = "super_admin"
+            admin_user.status = "active"
+            db.session.commit()
+            print("Super Admin account verified: admin@gmail.com")
 
         # Check or create default admin/farmer user
         user = User.query.filter_by(email="demo@valam.lk").first()
