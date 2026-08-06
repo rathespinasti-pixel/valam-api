@@ -26,29 +26,45 @@ def _is_valid_key(key: str | None) -> bool:
     return bool(k and k != "your-ai-provider-api-key" and not k.startswith("your-"))
 
 
-def ask_ai_assistant(question: str, category: str | None = None) -> str:
+def ask_ai_assistant(question: str, category: str | None = None, language: str = "en") -> str:
+    lang = (language or "en").lower()
+    if "ta" in lang or "tamil" in lang:
+        lang = "ta"
+    elif "si" in lang or "sinhala" in lang:
+        lang = "si"
+    else:
+        lang = "en"
+
     api_key = current_app.config.get("AI_PROVIDER_API_KEY")
     api_url = current_app.config.get("AI_PROVIDER_URL", "https://api.anthropic.com/v1/messages")
 
-    system_prompt = SYSTEM_PROMPT
+    system_prompt = f"{SYSTEM_PROMPT} Respond 100% in language code {lang}."
     focus = CATEGORY_FOCUS.get((category or "").strip())
     if focus:
-        system_prompt = f"{SYSTEM_PROMPT} {focus}"
+        system_prompt = f"{system_prompt} {focus}"
 
     if not _is_valid_key(api_key):
-        q_lower = question.lower()
-        if "yellow" in q_lower or "spot" in q_lower or "blight" in q_lower or "wilt" in q_lower:
+        if lang == "ta":
             return (
-                "Based on the reported symptoms (leaf yellowing / spots):\n"
-                "1. Possible Cause: Early Blight or Nitrogen / Iron Nutrient Deficiency commonly seen in dry-zone solanaceous crops (Tomato/Chili).\n"
-                "2. Immediate Actions: Remove infected bottom leaves, avoid overhead hose watering, and apply a 5% Neem seed kernel extract or copper-based fungicide spray.\n"
-                "3. Prevention: Maintain proper plant spacing (60cm x 45cm) and irrigate early in the morning."
+                "வளம் விவசாய AI உதவி:\n"
+                "1. நீர்ப்பாசனம்: மகா பருவத்தில் வடிகால் வசதிகளை மேம்படுத்துங்கள். யால பருவத்தில் சொட்டுநீர் பாசனத்தைப் பயன்படுத்துங்கள்.\n"
+                "2. உரம் & நோய்: 5% வேப்பங் கொட்டை சாறு தெளித்து பூச்சிகளைக் கட்டுப்படுத்துங்கள். தகுந்த NPK உரமிடுங்கள்.\n"
+                "3. பயிர் இடைவெளி: பயிர் வளர்ச்சிக்கு 60செ.மீ x 45செ.மீ இடைவெளியைப் பேணுங்கள்."
             )
-        return (
-            f"Regarding your query ('{question}'): For crops in Vavuniya, ensure proper field drainage during Maha rainy season, "
-            "and utilize drip irrigation with straw mulching during Yala dry season. Apply recommended NPK basal fertilizer "
-            "and inspect leaves weekly for early thrips or mite infestations."
-        )
+        elif lang == "si":
+            return (
+                "වළම් කෘෂිකාර්මික AI සහකරු:\n"
+                "1. ජලසම්පාදනය: මහා කන්නයේදී ජලාපවහනය නිසි ලෙස පවත්වා ගන්න. යල කන්නයේදී බිංදු ජලසම්පාදනය භාවිතා කරන්න.\n"
+                "2. පොහොර සහ පලිබෝධ: 5% කොහොඹ ඇට සාරය යොදා පලිබෝධ පාලනය කරන්න. නිර්දේශිත NPK පොහොර යොදන්න.\n"
+                "3. පරතරය: නිසි පැළ පරතරය (60cm x 45cm) පවත්වා ගන්න."
+            )
+        else:
+            return (
+                "Valam Agricultural AI Guidance:\n"
+                "1. Irrigation: Ensure proper field drainage during Maha rainy season, and utilize drip irrigation with mulching during Yala dry season.\n"
+                "2. Fertilizer & Pests: Apply recommended NPK basal fertilizer and spray 5% neem seed kernel extract for sap-sucking pest control.\n"
+                "3. Spacing: Maintain recommended plant spacing (60cm x 45cm) for optimal airflow."
+            )
 
     headers = {
         "content-type": "application/json",
