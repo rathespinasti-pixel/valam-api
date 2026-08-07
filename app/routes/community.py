@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.community import CommunityPost, Comment
 from app.utils.decorators import success_response, error_response, get_current_user
 
-community_bp = Blueprint("community", __name__, url_prefix="/api/community")
+community_bp = Blueprint("community", __name__)
 
 
 @community_bp.route("/posts", methods=["GET"])

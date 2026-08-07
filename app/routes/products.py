@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.product import Product
 from app.utils.decorators import success_response, error_response, get_current_user
 
-products_bp = Blueprint("products", __name__, url_prefix="/api/products")
+products_bp = Blueprint("products", __name__)
 
 
 @products_bp.route("", methods=["GET"])

@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.crop_guide import CropGuide
 from app.utils.decorators import success_response, error_response, get_current_user
 
-crop_guides_bp = Blueprint("crop_guides", __name__, url_prefix="/api/crop-guides")
+crop_guides_bp = Blueprint("crop_guides", __name__)
 
 
 @crop_guides_bp.route("", methods=["GET"])

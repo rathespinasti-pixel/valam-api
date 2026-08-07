@@ -6,7 +6,7 @@ from app.models.chat import ChatHistory
 from app.utils.decorators import success_response, error_response, get_current_user
 from app.utils.ai_client import ask_ai_assistant
 
-chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/api/chatbot")
+chatbot_bp = Blueprint("chatbot", __name__)
 
 
 @chatbot_bp.route("/ask", methods=["POST"])

@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from app.models.solar_guide import SolarGuide
 from app.utils.decorators import success_response, error_response
 
-solar_bp = Blueprint("solar", __name__, url_prefix="/api/solar")
+solar_bp = Blueprint("solar", __name__)
 
 
 @solar_bp.route("/guides", methods=["GET"])

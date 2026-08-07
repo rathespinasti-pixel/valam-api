@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.user import User
 from app.utils.decorators import success_response, error_response, get_current_user
 
-users_bp = Blueprint("users", __name__, url_prefix="/api/users")
+users_bp = Blueprint("users", __name__)
 
 
 @users_bp.route("/profile", methods=["GET"])

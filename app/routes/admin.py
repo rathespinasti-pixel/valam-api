@@ -18,7 +18,7 @@ from app.models.system_setting import SystemSetting
 from app.models.admin_activity_log import AdminActivityLog
 from app.utils.decorators import success_response, error_response, get_current_user
 
-admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
+admin_bp = Blueprint("admin", __name__)
 
 
 def log_admin_action(admin, action: str, details: str):

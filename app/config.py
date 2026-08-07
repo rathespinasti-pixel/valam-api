@@ -34,7 +34,9 @@ class Config:
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ["access", "refresh"]
 
-    # AI Chatbot provider
+    # AI Chatbot provider & Gemini API
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GWMINI_API_KEY", "")
+    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
     AI_PROVIDER_API_KEY = os.getenv("AI_PROVIDER_API_KEY", "")
     AI_PROVIDER_URL = os.getenv(
         "AI_PROVIDER_URL", "https://api.anthropic.com/v1/messages"

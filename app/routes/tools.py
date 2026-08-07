@@ -5,7 +5,7 @@ from app.extensions import db
 from app.models.tool_listing import ToolListing
 from app.utils.decorators import success_response, error_response, get_current_user
 
-tools_bp = Blueprint("tools", __name__, url_prefix="/api/tools")
+tools_bp = Blueprint("tools", __name__)
 
 
 @tools_bp.route("", methods=["GET"])

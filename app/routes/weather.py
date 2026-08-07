@@ -7,7 +7,7 @@ from app.utils.decorators import success_response, error_response, get_current_u
 from app.utils.weather_client import get_current_weather, get_forecast, get_alerts
 from app.utils.advisory import generate_agro_advisory
 
-weather_bp = Blueprint("weather", __name__, url_prefix="/api/weather")
+weather_bp = Blueprint("weather", __name__)
 
 
 @weather_bp.route("/advisory", methods=["GET"])

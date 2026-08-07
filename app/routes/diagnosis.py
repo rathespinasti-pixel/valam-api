@@ -6,7 +6,7 @@ from app.models.disease_diagnosis import DiseaseDiagnosis
 from app.utils.decorators import success_response, error_response, get_current_user
 from app.utils.ai_client import ask_ai_assistant
 
-diagnosis_bp = Blueprint("diagnosis", __name__, url_prefix="/api/diagnosis")
+diagnosis_bp = Blueprint("diagnosis", __name__)
 
 
 @diagnosis_bp.route("/analyze", methods=["POST"])

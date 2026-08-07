@@ -6,7 +6,7 @@ from app.extensions import db
 from app.models.crop import Crop
 from app.utils.decorators import success_response, error_response, get_current_user
 
-crops_bp = Blueprint("crops", __name__, url_prefix="/api/crops")
+crops_bp = Blueprint("crops", __name__)
 
 
 @crops_bp.route("", methods=["GET"])
@@ -126,4 +126,30 @@ def get_plant_info():
     from app.services.perenual_service import PerenualService
     plant_info = PerenualService.get_plant_info(crop_name)
     return success_response(plant_info)
+
+
+@crops_bp.route("/lifecycle-image", methods=["POST"])
+def get_lifecycle_image():
+    """
+    POST /api/crops/lifecycle-image
+    Fetch or generate dynamic crop lifecycle image.
+    """
+    data = request.get_json(silent=True) or {}
+    crop_name = data.get("crop_name")
+    stage = data.get("stage")
+    crop_id = data.get("crop_id")
+    crop_age = data.get("crop_age", 30)
+
+    if not crop_name or not stage:
+        return error_response("crop_name and stage are required parameters.", 400)
+
+    from app.services.gemini_image_service import GeminiImageService
+    result = GeminiImageService.get_or_generate_lifecycle_image(
+        crop_name=crop_name,
+        stage=stage,
+        crop_id=crop_id,
+        crop_age=crop_age
+    )
+    return success_response(result)
+
 

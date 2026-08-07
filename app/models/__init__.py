@@ -15,6 +15,7 @@ from app.models.system_notification import SystemNotification
 from app.models.user_feedback import UserFeedback
 from app.models.faq_item import FAQItem
 from app.models.system_setting import SystemSetting
+from app.models.crop_lifecycle_image import CropLifecycleImage
 
 __all__ = [
     "User",
@@ -35,4 +36,5 @@ __all__ = [
     "UserFeedback",
     "FAQItem",
     "SystemSetting",
+    "CropLifecycleImage",
 ]
