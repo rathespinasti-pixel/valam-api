@@ -68,6 +68,16 @@ def create_app(config_name="development"):
     def missing_token_callback(error):
         return jsonify({"success": False, "message": "Missing authorization token"}), 401
 
+    # Railway and similar platforms probe the service root by default. Keep
+    # it public so a successful deployment does not look like a 404 failure.
+    @app.route("/")
+    def service_root():
+        return jsonify({
+            "success": True,
+            "message": "Valam API is running",
+            "health": "/api/health",
+        }), 200
+
     # Health check
     @app.route("/api/health")
     def health_check():
