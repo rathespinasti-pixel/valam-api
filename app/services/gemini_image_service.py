@@ -97,16 +97,21 @@ class GeminiImageService:
     @classmethod
     def get_stage_key(cls, stage_name: str) -> str:
         s = (stage_name or "").lower().strip()
-        if "seedling" in s or "nursery" in s or "stage 1" in s:
+        if "seedling" in s or "nursery" in s or "stage 1" in s or "நாற்று" in s or "தவா" in s or "පැළ" in s:
             return "seedling"
-        if "vegetative" in s or "growth" in s or "stage 2" in s:
+        if "vegetative" in s or "growth" in s or "stage 2" in s or "வளர்ச்சி" in s or "වර්ධන" in s:
             return "vegetative"
-        if "flower" in s or "bloom" in s or "stage 3" in s:
+        if "flower" in s or "bloom" in s or "stage 3" in s or "பூக்கும்" in s or "மල්" in s:
             return "flowering"
-        if "fruit" in s or "matur" in s or "pod" in s or "stage 4" in s:
+        if "fruit" in s or "matur" in s or "pod" in s or "stage 4" in s or "காய்" in s or "ඵල" in s:
             return "fruiting"
-        if "harvest" in s or "pick" in s or "stage 5" in s:
+        if "harvest" in s or "pick" in s or "stage 5" in s or "அறுவடை" in s or "අස්වැන්න" in s:
             return "harvest"
+        if "1" in s: return "seedling"
+        if "2" in s: return "vegetative"
+        if "3" in s: return "flowering"
+        if "4" in s: return "fruiting"
+        if "5" in s: return "harvest"
         return "vegetative"
 
     @classmethod
