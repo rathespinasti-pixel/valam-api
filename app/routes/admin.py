@@ -174,8 +174,8 @@ def get_admin_users():
 def create_user():
     """Create a new farmer user account."""
     current_user = get_current_user()
-    if not current_user or current_user.role not in ["admin", "super_admin"]:
-        return error_response("Admin authorization required", 403)
+    if not current_user or current_user.role != "super_admin":
+        return error_response("Super Admin authorization required to create users", 403)
 
     data = request.get_json(silent=True) or {}
     full_name = data.get("full_name")
@@ -215,8 +215,8 @@ def create_user():
 def update_admin_user_profile(user_id):
     """Update user profile details."""
     current_user = get_current_user()
-    if not current_user or current_user.role not in ["admin", "super_admin"]:
-        return error_response("Admin authorization required", 403)
+    if not current_user or current_user.role != "super_admin":
+        return error_response("Super Admin authorization required to update users", 403)
 
     user = User.query.get(user_id)
     if not user:
@@ -238,8 +238,8 @@ def update_admin_user_profile(user_id):
 def reset_user_password(user_id):
     """Reset password for a user account."""
     current_user = get_current_user()
-    if not current_user or current_user.role not in ["admin", "super_admin"]:
-        return error_response("Admin authorization required", 403)
+    if not current_user or current_user.role != "super_admin":
+        return error_response("Super Admin authorization required to reset user passwords", 403)
 
     user = User.query.get(user_id)
     if not user:
@@ -262,8 +262,8 @@ def reset_user_password(user_id):
 def ban_unban_user(user_id):
     """Toggle Ban / Unban status for a user."""
     current_user = get_current_user()
-    if not current_user or current_user.role not in ["admin", "super_admin"]:
-        return error_response("Admin authorization required", 403)
+    if not current_user or current_user.role != "super_admin":
+        return error_response("Super Admin authorization required to ban or unban users", 403)
 
     target_user = User.query.get(user_id)
     if not target_user:
