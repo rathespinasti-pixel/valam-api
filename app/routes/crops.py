@@ -129,6 +129,7 @@ def get_plant_info():
 
 
 @crops_bp.route("/lifecycle-image", methods=["POST"])
+@jwt_required()
 def get_lifecycle_image():
     """
     POST /api/crops/lifecycle-image
@@ -139,6 +140,20 @@ def get_lifecycle_image():
     stage = data.get("stage")
     crop_id = data.get("crop_id")
     crop_age = data.get("crop_age", 30)
+    variety = data.get("variety")
+    planting_method = data.get("planting_method")
+
+    # Verify user authentication
+    current_user = get_current_user()
+    if not current_user:
+        return error_response("User authentication required", 403)
+
+    # Optional: ensure the crop belongs to the user if crop_id is provided
+    if crop_id:
+        from app.models.crop import Crop
+        crop_obj = Crop.query.get(crop_id)
+        if not crop_obj or crop_obj.user_id != current_user.id:
+            return error_response("Crop not found or access denied", 404)
 
     if not crop_name or not stage:
         return error_response("crop_name and stage are required parameters.", 400)
@@ -148,7 +163,9 @@ def get_lifecycle_image():
         crop_name=crop_name,
         stage=stage,
         crop_id=crop_id,
-        crop_age=crop_age
+        crop_age=crop_age,
+        variety=variety,
+        planting_method=planting_method,
     )
     return success_response(result)
 

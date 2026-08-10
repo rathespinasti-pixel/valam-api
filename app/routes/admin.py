@@ -16,7 +16,9 @@ from app.models.user_feedback import UserFeedback
 from app.models.faq_item import FAQItem
 from app.models.system_setting import SystemSetting
 from app.models.admin_activity_log import AdminActivityLog
+from app.models.managed_crop import ManagedCrop
 from app.utils.decorators import success_response, error_response, get_current_user
+from app.services.gemini_image_service import GeminiImageService
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -70,6 +72,9 @@ def get_admin_stats():
     # Crop statistics
     total_supported_crops = CropGuide.query.count()
     total_active_crop_records = Crop.query.count()
+    total_managed_crops = ManagedCrop.query.count()
+    published_managed_crops = ManagedCrop.query.filter_by(status="published").count()
+    draft_managed_crops = ManagedCrop.query.filter_by(status="draft").count()
 
     most_cultivated_row = db.session.query(
         Crop.crop_name, func.count(Crop.id).label("cnt")
@@ -106,6 +111,9 @@ def get_admin_stats():
         "crops": {
             "total_supported": total_supported_crops,
             "total_active_records": total_active_crop_records,
+            "total_managed": total_managed_crops,
+            "published": published_managed_crops,
+            "draft": draft_managed_crops,
             "most_cultivated": most_cultivated_crop,
             "recently_added": recently_added_crops,
         },
@@ -745,6 +753,31 @@ def export_crops_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=valam_crops_export.csv"}
     )
+
+@admin_bp.route("/crops/generate-stage-image", methods=["POST"])
+@jwt_required()
+def generate_crop_stage_image():
+    """Generate or retrieve AI image for a crop lifecycle stage."""
+    current_user = get_current_user()
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required", 403)
+    data = request.get_json(silent=True) or {}
+    crop_name = data.get("crop_name")
+    stage = data.get("stage")
+    crop_id = data.get("crop_id")
+    crop_age = data.get("crop_age", 30)
+    variety = data.get("variety")
+    planting_method = data.get("planting_method")
+    if not crop_name or not stage:
+        return error_response("crop_name and stage are required", 400)
+    try:
+        result = GeminiImageService.get_or_generate_lifecycle_image(
+            crop_name, stage, crop_id, crop_age, variety, planting_method
+        )
+    except Exception as e:
+        return error_response(str(e), 500)
+    log_admin_action(current_user, "Lifecycle Image Generated", f"Generated image for {crop_name} - {stage}")
+    return success_response(result)
 
 
 # =========================================================

@@ -57,8 +57,17 @@ class Config:
     PERENUAL_API_KEY = os.getenv("PERENUAL_API_KEY") or os.getenv("PRENUAL_API_KEY", "")
     PERENUAL_BASE_URL = os.getenv("PERENUAL_BASE_URL", "https://perenual.com/api")
 
+    # Approved lifecycle images are uploaded server-side only.
+    CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+    CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+    CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+
     # CORS
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+    # Parse CORS origins from env (comma‑separated) into a list for Flask‑CORS
+    origins = os.getenv("CORS_ORIGINS", "*")
+    if isinstance(origins, str):
+        origins = [o.strip() for o in origins.split(",") if o.strip()]
+    CORS_ORIGINS = origins
 
     # Swagger
     SWAGGER = {

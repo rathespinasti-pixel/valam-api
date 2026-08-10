@@ -11,6 +11,8 @@ class Crop(db.Model):
     variety = db.Column(db.String(100), nullable=True)
     planting_date = db.Column(db.Date, nullable=False)
     planting_method = db.Column(db.String(50), nullable=True, default="Transplanting")
+    latitude = db.Column(db.Float, nullable=True)
+    longitude = db.Column(db.Float, nullable=True)
     land_size = db.Column(db.Float, nullable=True, default=0.5)
     land_size_unit = db.Column(db.String(20), nullable=True, default="Acres")
     irrigation_type = db.Column(db.String(50), nullable=True, default="Drip Irrigation")

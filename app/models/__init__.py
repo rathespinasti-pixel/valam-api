@@ -16,6 +16,8 @@ from app.models.user_feedback import UserFeedback
 from app.models.faq_item import FAQItem
 from app.models.system_setting import SystemSetting
 from app.models.crop_lifecycle_image import CropLifecycleImage
+from app.models.managed_crop import (ManagedCrop, CropLifecycleStage, PlantingMethod,
+    SoilRequirement, Compost, Fertilizer, Irrigation, Pest, CropDisease, HarvestInformation)
 
 __all__ = [
     "User",
@@ -37,4 +39,6 @@ __all__ = [
     "FAQItem",
     "SystemSetting",
     "CropLifecycleImage",
+    "ManagedCrop", "CropLifecycleStage", "PlantingMethod", "SoilRequirement",
+    "Compost", "Fertilizer", "Irrigation", "Pest", "CropDisease", "HarvestInformation",
 ]

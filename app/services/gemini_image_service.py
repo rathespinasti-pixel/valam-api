@@ -196,9 +196,11 @@ class GeminiImageService:
         return crop_map.get(stage_key, crop_map.get("default"))
 
     @staticmethod
-    def _build_prompt(crop_name: str, stage_name: str, crop_age: int) -> str:
+    def _build_prompt(crop_name: str, stage_name: str, crop_age: int, variety: str = None, planting_method: str = None) -> str:
+        v = f" of variety {variety}" if variety else ""
+        p = f", grown using {planting_method} method" if planting_method else ""
         return (
-            f"A realistic, photorealistic agricultural photograph of a healthy {crop_name} plant, "
+            f"A realistic, photorealistic agricultural photograph of a healthy {crop_name}{v} plant{p}, "
             f"approximately {crop_age} days after planting, currently in its {stage_name} growth "
             f"stage. Show accurate {crop_name} leaf shape, plant structure and coloration typical of "
             f"this exact growth stage. Natural outdoor farm field setting, daylight, sharp focus, "
@@ -237,7 +239,7 @@ class GeminiImageService:
             return relative_url
 
     @classmethod
-    def get_or_generate_lifecycle_image(cls, crop_name: str, stage: str, crop_id: int = None, crop_age: int = 30) -> dict:
+    def get_or_generate_lifecycle_image(cls, crop_name: str, stage: str, crop_id: int = None, crop_age: int = 30, variety: str = None, planting_method: str = None) -> dict:
         if not crop_name or not stage:
             raise ValueError("crop_name and stage are required parameters.")
 
@@ -246,10 +248,16 @@ class GeminiImageService:
         stage_key = cls.get_stage_key(clean_stage)
 
         # 1. Search Database for cached image
-        existing = CropLifecycleImage.query.filter(
+        query = CropLifecycleImage.query.filter(
             CropLifecycleImage.crop_name.ilike(clean_crop),
             CropLifecycleImage.stage.ilike(stage_key)
-        ).first()
+        )
+        if variety:
+            query = query.filter(CropLifecycleImage.variety.ilike(variety.strip()))
+        if planting_method:
+            query = query.filter(CropLifecycleImage.planting_method.ilike(planting_method.strip()))
+        
+        existing = query.first()
 
         if not existing and crop_id:
             existing = CropLifecycleImage.query.filter(
@@ -262,7 +270,7 @@ class GeminiImageService:
             return existing.to_dict()
 
         # 2. Attempt live Gemini image generation
-        prompt = cls._build_prompt(clean_crop, clean_stage, crop_age)
+        prompt = cls._build_prompt(clean_crop, clean_stage, crop_age, variety, planting_method)
         image_url = None
         source = "gemini_generated"
         try:
@@ -290,7 +298,9 @@ class GeminiImageService:
                 stage=stage_key,
                 image_url=image_url,
                 prompt_used=prompt,
-                generated_date=datetime.utcnow()
+                generated_date=datetime.utcnow(),
+                variety=variety.strip() if variety else None,
+                planting_method=planting_method.strip() if planting_method else None
             )
             db.session.add(new_record)
             db.session.commit()
