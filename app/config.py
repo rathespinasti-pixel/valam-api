@@ -58,7 +58,13 @@ class Config:
     PERENUAL_BASE_URL = os.getenv("PERENUAL_BASE_URL", "https://perenual.com/api")
 
     # CORS
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+    _raw_cors = os.getenv("CORS_ORIGINS", "*")
+    if _raw_cors == "*":
+        CORS_ORIGINS = "*"
+    elif "," in _raw_cors:
+        CORS_ORIGINS = [origin.strip() for origin in _raw_cors.split(",") if origin.strip()]
+    else:
+        CORS_ORIGINS = [_raw_cors.strip()] if _raw_cors.strip() else "*"
 
     # Swagger
     SWAGGER = {

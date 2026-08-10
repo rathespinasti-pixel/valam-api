@@ -12,7 +12,19 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
+    cors_origins = app.config.get("CORS_ORIGINS", "*")
+    if isinstance(cors_origins, str) and "," in cors_origins:
+        cors_origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
+    elif isinstance(cors_origins, str) and cors_origins != "*":
+        cors_origins = [cors_origins.strip()]
+
+    cors.init_app(
+        app,
+        resources={r"/*": {"origins": cors_origins}},
+        supports_credentials=True,
+        allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+        methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    )
     swagger.init_app(app)
 
     # Import models so Flask-Migrate can detect them

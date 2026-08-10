@@ -16,13 +16,19 @@ def init_db():
         try:
             with db.engine.connect() as connection:
                 pass
-        except OperationalError as e:
+        except (OperationalError, SQLAlchemyError, Exception) as e:
             print("=" * 70)
             print("MYSQL CONNECTION FAILED - Falling back to local SQLite database...")
             print(f"Error: {e}")
             print("=" * 70)
+            try:
+                db.engine.dispose()
+            except Exception:
+                pass
             app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///valam_local.db"
-            db.engine.dispose()
+            if "sqlalchemy" in app.extensions:
+                del app.extensions["sqlalchemy"]
+            db.init_app(app)
 
         # Import models so SQLAlchemy's metadata knows about every table
         # before create_all() runs (create_app already imports these, but
