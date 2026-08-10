@@ -61,10 +61,23 @@ def init_db():
                     ("main_crops_grown", "VARCHAR(255)"),
                     ("preferred_language", "VARCHAR(10) DEFAULT 'en'"),
                     ("onboarding_completed", "BOOLEAN DEFAULT FALSE"),
+                    ("ban_reason", "TEXT"),
                 ]
                 for col_name, col_def in new_user_cols:
                     if col_name not in existing_user_cols:
                         db.session.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_def}"))
+                        db.session.commit()
+
+            if "crop_guides" in inspector.get_table_names():
+                existing_guide_cols = [c['name'] for c in inspector.get_columns('crop_guides')]
+                new_guide_cols = [
+                    ("planting_method", "VARCHAR(50) DEFAULT 'Direct Seeding'"),
+                    ("fertilizer_type", "VARCHAR(50) DEFAULT 'Organic'"),
+                    ("stage_composts_json", "TEXT"),
+                ]
+                for col_name, col_def in new_guide_cols:
+                    if col_name not in existing_guide_cols:
+                        db.session.execute(text(f"ALTER TABLE crop_guides ADD COLUMN {col_name} {col_def}"))
                         db.session.commit()
 
             if "crops" in inspector.get_table_names():

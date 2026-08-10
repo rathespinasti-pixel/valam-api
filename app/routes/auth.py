@@ -97,7 +97,9 @@ def login():
         return error_response("Invalid email or password", 401)
 
     if getattr(user, "status", "active") == "banned":
-        return error_response("Your account has been suspended. Please contact support.", 403)
+        reason = getattr(user, "ban_reason", None)
+        msg = f"Your account has been suspended. Reason: {reason}. Please contact support." if reason else "Your account has been suspended. Please contact support."
+        return error_response(msg, 403)
 
     access_token = create_access_token(identity=str(user.id))
     refresh_token = create_refresh_token(identity=str(user.id))

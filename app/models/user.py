@@ -16,6 +16,7 @@ class User(db.Model):
     farm_size_acres = db.Column(db.Float, nullable=True)
     role = db.Column(db.String(20), default="farmer", nullable=False)
     status = db.Column(db.String(20), default="active", nullable=False)
+    ban_reason = db.Column(db.Text, nullable=True)
     farming_category = db.Column(db.String(50), nullable=True, default="Farmer")
     district = db.Column(db.String(100), nullable=True, default="Vavuniya")
     ds_division = db.Column(db.String(100), nullable=True, default="Vavuniya Town")
@@ -58,6 +59,7 @@ class User(db.Model):
             "farm_size_acres": self.farm_size_acres,
             "role": self.role,
             "status": self.status or "active",
+            "ban_reason": self.ban_reason,
             "farming_category": self.farming_category or self.farmer_type or "Farmer",
             "district": self.district or "Vavuniya",
             "ds_division": self.ds_division or self.district_asc or "Vavuniya Town",

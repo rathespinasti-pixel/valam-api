@@ -13,10 +13,13 @@ chatbot_bp = Blueprint("chatbot", __name__)
 @jwt_required()
 def ask():
     """
-    Ask the AI farming assistant a question.
+    Ask the AI farming assistant a question with full user & crop context awareness.
     ---
     tags: [Chatbot]
     """
+    from datetime import date, datetime
+    from app.models.crop import Crop
+
     user = get_current_user()
     if not user:
         return error_response("User not found", 404)
@@ -25,17 +28,75 @@ def ask():
     question = (data.get("question") or "").strip()
     category = (data.get("category") or "").strip() or None
     language = (data.get("language") or getattr(user, "preferred_language", "en") or "en").strip()
+    page_context = data.get("page_context") or {}
 
     if not question:
         return error_response("question is required", 400)
 
-    answer = ask_ai_assistant(question, category, language)
+    # 1. Fetch all active crops for this user from database
+    user_crops = Crop.query.filter_by(user_id=user.id, is_active=True).all()
+    crops_context = []
+    today = date.today()
+    for c in user_crops:
+        days_old = None
+        if c.planting_date:
+            try:
+                p_date = c.planting_date
+                if isinstance(p_date, str):
+                    p_date = datetime.strptime(p_date[:10], "%Y-%m-%d").date()
+                elif isinstance(p_date, datetime):
+                    p_date = p_date.date()
+                if isinstance(p_date, date):
+                    days_old = (today - p_date).days
+            except Exception:
+                pass
+        crops_context.append({
+            "id": c.id,
+            "crop_name": c.crop_name,
+            "variety": c.variety or "Standard",
+            "planting_date": str(c.planting_date),
+            "days_after_planting": days_old,
+            "current_stage": c.current_stage or "Active Growth",
+            "planting_method": getattr(c, "planting_method", "Direct Seeding"),
+            "irrigation_type": getattr(c, "irrigation_type", "Drip Irrigation"),
+            "fertilizer_preference": getattr(c, "fertilizer_preference", "Organic"),
+            "land_size": getattr(c, "land_size", None),
+            "land_size_unit": getattr(c, "land_size_unit", "Acres"),
+            "notes": getattr(c, "notes", None)
+        })
+
+    # 2. Extract Farmer Profile Metadata
+    user_profile = {
+        "full_name": user.full_name,
+        "district": getattr(user, "district", "Vavuniya") or "Vavuniya",
+        "ds_division": getattr(user, "ds_division", "Vavuniya Town") or "Vavuniya Town",
+        "farming_category": getattr(user, "farming_category", "Farmer") or "Farmer",
+        "land_size": getattr(user, "land_size", 1.0) or 1.0,
+        "land_size_unit": getattr(user, "land_size_unit", "Acres") or "Acres",
+        "irrigation_preference": getattr(user, "irrigation_preference", "Drip Irrigation") or "Drip Irrigation",
+        "fertilizer_preference": getattr(user, "fertilizer_preference", "Organic") or "Organic",
+        "preferred_language": language
+    }
+
+    full_context = {
+        "profile": user_profile,
+        "crops": crops_context,
+        "page_context": page_context
+    }
+
+    answer = ask_ai_assistant(question, category, language, user_context=full_context)
 
     entry = ChatHistory(user_id=user.id, question=question, answer=answer)
     db.session.add(entry)
     db.session.commit()
 
-    return success_response(entry.to_dict(), message="Answer generated successfully")
+    return success_response({
+        **entry.to_dict(),
+        "context_applied": {
+            "active_crops_count": len(crops_context),
+            "crops": [f"{c['crop_name']} ({c['current_stage']}, Day {c['days_after_planting']})" for c in crops_context]
+        }
+    }, message="Answer generated successfully")
 
 
 @chatbot_bp.route("/history", methods=["GET"])
