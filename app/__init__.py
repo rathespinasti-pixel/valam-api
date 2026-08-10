@@ -3,6 +3,23 @@ from flask import Flask, jsonify
 from app.config import config_by_name
 from app.extensions import db, migrate, jwt, cors, swagger, BLACKLISTED_TOKENS
 
+# Import blueprints
+from app.routes.auth import auth_bp
+from app.routes.users import users_bp
+from app.routes.chatbot import chatbot_bp
+from app.routes.solar import solar_bp
+from app.routes.weather import weather_bp
+from app.routes.products import products_bp
+from app.routes.crops import crops_bp
+from app.routes.crop_guides import crop_guides_bp
+from app.routes.diagnosis import diagnosis_bp
+from app.routes.community import community_bp
+from app.routes.tools import tools_bp
+from app.routes.admin import admin_bp
+from app.routes.ai import ai_bp
+from app.routes.subscription import subscription_bp
+from app.routes.marketplace import marketplace_bp
+from app.routes.managed_crops import managed_crops_bp, public_catalogue_bp
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -12,27 +29,13 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
+    cors.init_app(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for all routes
     swagger.init_app(app)
 
-    # Import models so Flask-Migrate can detect them
+    # Import models for migrations
     from app import models as app_models  # noqa: F401
 
     # Register blueprints
-    from app.routes.auth import auth_bp
-    from app.routes.users import users_bp
-    from app.routes.chatbot import chatbot_bp
-    from app.routes.solar import solar_bp
-    from app.routes.weather import weather_bp
-    from app.routes.products import products_bp
-    from app.routes.crops import crops_bp
-    from app.routes.crop_guides import crop_guides_bp
-    from app.routes.diagnosis import diagnosis_bp
-    from app.routes.community import community_bp
-    from app.routes.tools import tools_bp
-    from app.routes.admin import admin_bp
-    from app.routes.ai import ai_bp
-
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     app.register_blueprint(chatbot_bp, url_prefix="/api/chatbot")
@@ -46,8 +49,12 @@ def create_app(config_name="development"):
     app.register_blueprint(tools_bp, url_prefix="/api/tools")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(ai_bp, url_prefix="/api/ai")
+    app.register_blueprint(subscription_bp, url_prefix="/api/subscription")
+    app.register_blueprint(marketplace_bp, url_prefix="/api/marketplace")
+    app.register_blueprint(managed_crops_bp, url_prefix="/api/admin/crops")
+    app.register_blueprint(public_catalogue_bp, url_prefix="/api/catalogue/crops")
 
-    # JWT: check token blacklist (used for logout)
+    # JWT token blacklist handling
     @jwt.token_in_blocklist_loader
     def check_if_token_revoked(jwt_header, jwt_payload):
         return jwt_payload["jti"] in BLACKLISTED_TOKENS
@@ -68,22 +75,14 @@ def create_app(config_name="development"):
     def missing_token_callback(error):
         return jsonify({"success": False, "message": "Missing authorization token"}), 401
 
-    # Railway and similar platforms probe the service root by default. Keep
-    # it public so a successful deployment does not look like a 404 failure.
     @app.route("/")
     def service_root():
-        return jsonify({
-            "success": True,
-            "message": "Valam API is running",
-            "health": "/api/health",
-        }), 200
+        return jsonify({"success": True, "message": "Valam API is running", "health": "/api/health"}), 200
 
-    # Health check
     @app.route("/api/health")
     def health_check():
         return jsonify({"success": True, "message": "API is running"}), 200
 
-    # Global error handlers
     @app.errorhandler(404)
     def not_found(e):
         return jsonify({"success": False, "message": "Resource not found"}), 404
