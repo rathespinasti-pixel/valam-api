@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     create_refresh_token,
     jwt_required,
     get_jwt,
+    get_jwt_identity,
 )
 
 from app.extensions import db, BLACKLISTED_TOKENS
@@ -125,6 +126,32 @@ def logout():
     jti = get_jwt()["jti"]
     BLACKLISTED_TOKENS.add(jti)
     return success_response(message="Logged out successfully")
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    """
+    Refresh access token using refresh token.
+    ---
+    tags: [Auth]
+    """
+    user_id = get_jwt_identity()
+    user = User.query.get(int(user_id)) if user_id else None
+    if not user:
+        return error_response("User not found", 404)
+
+    if getattr(user, "status", "active") == "banned":
+        return error_response("Your account has been suspended", 403)
+
+    new_access_token = create_access_token(identity=str(user.id))
+    return success_response(
+        {
+            "access_token": new_access_token,
+            "user": user.to_dict(),
+        },
+        message="Token refreshed successfully",
+    )
 
 
 @auth_bp.route("/me", methods=["GET"])
