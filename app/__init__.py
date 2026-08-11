@@ -29,9 +29,7 @@ def create_app(config_name="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-<<<<<<< HEAD
-    cors.init_app(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for all routes
-=======
+    # Configure CORS origins dynamically based on app config
     cors_origins = app.config.get("CORS_ORIGINS", "*")
     if isinstance(cors_origins, str) and "," in cors_origins:
         cors_origins = [o.strip() for o in cors_origins.split(",") if o.strip()]
@@ -45,7 +43,6 @@ def create_app(config_name="development"):
         allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
         methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     )
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
     swagger.init_app(app)
 
     # Import models for migrations

@@ -296,17 +296,6 @@ class GeminiImageService:
         return crop_map.get(stage_key, crop_map.get("default", cls._placeholder_data_uri(crop_name, stage_key, variety)))
 
     @staticmethod
-<<<<<<< HEAD
-    def _build_prompt(crop_name: str, stage_name: str, crop_age: int, variety: str = None, planting_method: str = None) -> str:
-        v = f" of variety {variety}" if variety else ""
-        p = f", grown using {planting_method} method" if planting_method else ""
-        return (
-            f"A realistic, photorealistic agricultural photograph of a healthy {crop_name}{v} plant{p}, "
-            f"approximately {crop_age} days after planting, currently in its {stage_name} growth "
-            f"stage. Show accurate {crop_name} leaf shape, plant structure and coloration typical of "
-            f"this exact growth stage. Natural outdoor farm field setting, daylight, sharp focus, "
-            f"no text, no watermark, no illustration/cartoon style."
-=======
     def _build_prompt(crop_name: str, stage_name: str, variety: str = None, crop_age: int = 30) -> str:
         var_text = f" (Variety: {variety})" if variety else ""
         return (
@@ -316,7 +305,6 @@ class GeminiImageService:
             f"(e.g. tender green seedling shoots, lush vegetative branching canopy, distinct blossoms for flowering, developing/ripening fruits for fruiting, or harvest-ready yield). "
             f"Natural daylight, outdoor garden field bed, sharp focus, clean agricultural educational style. "
             f"STRICT NEGATIVE CONSTRAINTS: No people, no farmers, no hands, no text, no labels, no diagrams, no watermarks, no logos, no other plant species or unrelated crops in frame."
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         )
 
     @staticmethod
@@ -346,13 +334,8 @@ class GeminiImageService:
             return relative_url
 
     @classmethod
-<<<<<<< HEAD
+    @classmethod
     def get_or_generate_lifecycle_image(cls, crop_name: str, stage: str, crop_id: int = None, crop_age: int = 30, variety: str = None, planting_method: str = None) -> dict:
-=======
-    def get_or_generate_lifecycle_image(
-        cls, crop_name: str, stage: str, variety: str = None, crop_id: int = None, crop_age: int = 30
-    ) -> dict:
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         if not crop_name or not stage:
             raise ValueError("crop_name and stage are required parameters.")
 
@@ -361,13 +344,8 @@ class GeminiImageService:
         clean_variety = variety.strip() if variety else None
         stage_key = cls.get_stage_key(clean_stage)
 
-<<<<<<< HEAD
         # 1. Search Database for cached image
         query = CropLifecycleImage.query.filter(
-=======
-        # 1. Search Database for cached image for this exact crop and stage
-        existing = CropLifecycleImage.query.filter(
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
             CropLifecycleImage.crop_name.ilike(clean_crop),
             CropLifecycleImage.stage.ilike(stage_key)
         )
@@ -388,13 +366,8 @@ class GeminiImageService:
             logger.info(f"Retrieved cached lifecycle image from DB for {clean_crop} - {clean_stage}")
             return existing.to_dict()
 
-<<<<<<< HEAD
-        # 2. Attempt live Gemini image generation
-        prompt = cls._build_prompt(clean_crop, clean_stage, crop_age, variety, planting_method)
-=======
-        # 2. Attempt live Gemini AI image generation
+# 2. Attempt live Gemini AI image generation
         prompt = cls._build_prompt(clean_crop, clean_stage, clean_variety, crop_age)
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         image_url = None
         source = "gemini_generated"
         try:

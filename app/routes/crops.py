@@ -166,7 +166,6 @@ def get_lifecycle_image():
         variety=variety,
         crop_id=crop_id,
         crop_age=crop_age,
-        variety=variety,
         planting_method=planting_method,
     )
     return success_response(result)

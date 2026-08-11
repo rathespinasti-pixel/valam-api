@@ -63,21 +63,8 @@ class Config:
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
 
     # CORS
-<<<<<<< HEAD
-    # Parse CORS origins from env (comma‑separated) into a list for Flask‑CORS
-    origins = os.getenv("CORS_ORIGINS", "*")
-    if isinstance(origins, str):
-        origins = [o.strip() for o in origins.split(",") if o.strip()]
-    CORS_ORIGINS = origins
-=======
-    _raw_cors = os.getenv("CORS_ORIGINS", "*")
-    if _raw_cors == "*":
-        CORS_ORIGINS = "*"
-    elif "," in _raw_cors:
-        CORS_ORIGINS = [origin.strip() for origin in _raw_cors.split(",") if origin.strip()]
-    else:
-        CORS_ORIGINS = [_raw_cors.strip()] if _raw_cors.strip() else "*"
->>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
+    # CORS
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
     # Swagger
     SWAGGER = {
@@ -107,3 +94,4 @@ config_by_name = {
     "production": ProductionConfig,
     "testing": TestingConfig,
 }
+
