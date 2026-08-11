@@ -35,6 +35,7 @@ def ask():
 
     # 1. Fetch all active crops for this user from database
     user_crops = Crop.query.filter_by(user_id=user.id, is_active=True).all()
+    focused_crop_id = page_context.get("focused_crop_id")
     crops_context = []
     today = date.today()
     for c in user_crops:
@@ -64,6 +65,13 @@ def ask():
             "land_size_unit": getattr(c, "land_size_unit", "Acres"),
             "notes": getattr(c, "notes", None)
         })
+
+    if focused_crop_id:
+        try:
+            focused_crop_id = int(focused_crop_id)
+            crops_context.sort(key=lambda crop: 0 if crop.get("id") == focused_crop_id else 1)
+        except (TypeError, ValueError):
+            pass
 
     # 2. Extract Farmer Profile Metadata
     user_profile = {

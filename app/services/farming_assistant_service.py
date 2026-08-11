@@ -86,13 +86,19 @@ class FarmingAssistantService:
 
             if page_context:
                 context_lines.append(f"\n• Current User Screen/Page Context: {page_context}")
+                focused_crop = page_context.get("focused_crop") if isinstance(page_context, dict) else None
+                if focused_crop:
+                    context_lines.append("\n• FOCUSED CROP FROM USER CLICK:")
+                    context_lines.append(f"  The farmer clicked the AI assistant from the {focused_crop.get('crop_name')} dashboard overview card.")
+                    context_lines.append(f"  Focus crop details: {focused_crop}")
 
             context_lines.append("======================================================================")
             context_lines.append("CRITICAL INSTRUCTIONS FOR CONTEXT-AWARENESS:")
             context_lines.append("1. NEVER ask the farmer what they are growing, when they started, their location, or land size. You ALREADY have their live database records above.")
             context_lines.append("2. Directly tailor your answer to their specific active crop(s), variety, age in days, and current growth stage.")
             context_lines.append("3. If the user asks a general question like 'When do I fertilize?' or 'How much water do I need?', IMMEDIATELY answer for their active crop and current growth stage without asking for clarification.")
-            context_lines.append("4. Keep explanations practical, structured, and warm.")
+            context_lines.append("4. If a focused crop is provided from a dashboard click, answer for that crop first. For example, if the focused crop is Tomato answer tomato questions; if it is Chilli/Chili answer chilli questions.")
+            context_lines.append("5. Keep explanations practical, structured, and warm.")
             context_lines.append("======================================================================\n")
 
         context_block = "\n".join(context_lines) if context_lines else ""
