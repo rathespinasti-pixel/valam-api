@@ -22,6 +22,18 @@ def _api_key():
     return k
 
 
+def _coordinates(location: str):
+    try:
+        lat_raw, lon_raw = [part.strip() for part in (location or "").split(",", 1)]
+        lat = float(lat_raw)
+        lon = float(lon_raw)
+        if -90 <= lat <= 90 and -180 <= lon <= 180:
+            return lat, lon
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
 def get_current_weather(location: str):
     api_key = _api_key()
     fallback_data = {
@@ -37,7 +49,12 @@ def get_current_weather(location: str):
         return fallback_data
 
     url = f"{_base_url()}/weather"
-    params = {"q": location, "appid": api_key, "units": "metric"}
+    coords = _coordinates(location)
+    params = (
+        {"lat": coords[0], "lon": coords[1], "appid": api_key, "units": "metric"}
+        if coords
+        else {"q": location, "appid": api_key, "units": "metric"}
+    )
 
     try:
         resp = requests.get(url, params=params, timeout=10)
@@ -72,7 +89,12 @@ def get_forecast(location: str, days: int = 5):
         return fallback_forecast
 
     url = f"{_base_url()}/forecast"
-    params = {"q": location, "appid": api_key, "units": "metric", "cnt": days * 8}
+    coords = _coordinates(location)
+    params = (
+        {"lat": coords[0], "lon": coords[1], "appid": api_key, "units": "metric", "cnt": days * 8}
+        if coords
+        else {"q": location, "appid": api_key, "units": "metric", "cnt": days * 8}
+    )
 
     try:
         resp = requests.get(url, params=params, timeout=10)

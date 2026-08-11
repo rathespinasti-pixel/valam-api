@@ -39,7 +39,7 @@ def register():
 
     district = data.get("district") or data.get("farm_location") or "Vavuniya"
     ds_div = data.get("ds_division") or data.get("district_asc") or "Vavuniya Town"
-    loc_str = f"{ds_div}, {district}"
+    loc_str = farm_location or f"{ds_div}, {district}"
 
     user = User(
         full_name=full_name.strip(),
