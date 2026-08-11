@@ -182,8 +182,8 @@ def get_admin_users():
 def create_user():
     """Create a new farmer user account."""
     current_user = get_current_user()
-    if not current_user or current_user.role != "super_admin":
-        return error_response("Super Admin authorization required to create users", 403)
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required to create users", 403)
 
     data = request.get_json(silent=True) or {}
     full_name = data.get("full_name")
@@ -223,18 +223,27 @@ def create_user():
 def update_admin_user_profile(user_id):
     """Update user profile details."""
     current_user = get_current_user()
-    if not current_user or current_user.role != "super_admin":
-        return error_response("Super Admin authorization required to update users", 403)
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required to update users", 403)
 
     user = User.query.get(user_id)
     if not user:
         return error_response("User not found", 404)
 
     data = request.get_json(silent=True) or {}
-    fields = ("full_name", "phone", "farming_category", "district", "ds_division", "gn_division", "preferred_language", "status")
+    fields = (
+        "full_name", "email", "phone", "farming_category", "farmer_type",
+        "district", "ds_division", "gn_division", "land_size", "land_size_unit",
+        "irrigation_preference", "fertilizer_preference", "preferred_language",
+        "status", "ban_reason"
+    )
     for f in fields:
         if f in data:
             setattr(user, f, data[f])
+
+    if "password" in data and data["password"]:
+        if len(data["password"]) >= 6:
+            user.set_password(data["password"])
 
     db.session.commit()
     log_admin_action(current_user, "User Updated", f"Updated user profile for {user.email}")
@@ -246,8 +255,8 @@ def update_admin_user_profile(user_id):
 def reset_user_password(user_id):
     """Reset password for a user account."""
     current_user = get_current_user()
-    if not current_user or current_user.role != "super_admin":
-        return error_response("Super Admin authorization required to reset user passwords", 403)
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required to reset user passwords", 403)
 
     user = User.query.get(user_id)
     if not user:
@@ -268,14 +277,17 @@ def reset_user_password(user_id):
 @admin_bp.route("/users/<int:user_id>/ban", methods=["PUT"])
 @jwt_required()
 def ban_unban_user(user_id):
-    """Toggle Ban / Unban status for a user."""
+    """Toggle Ban / Unban status for a user with reason."""
     current_user = get_current_user()
-    if not current_user or current_user.role != "super_admin":
-        return error_response("Super Admin authorization required to ban or unban users", 403)
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required to ban or unban users", 403)
 
     target_user = User.query.get(user_id)
     if not target_user:
         return error_response("User not found", 404)
+
+    if target_user.role in ["admin", "super_admin"] and current_user.role != "super_admin":
+        return error_response("Admins cannot ban other admin accounts", 403)
 
     if target_user.role == "super_admin":
         return error_response("Cannot ban Super Admin account", 400)
@@ -285,11 +297,20 @@ def ban_unban_user(user_id):
     if new_status not in ["active", "banned"]:
         new_status = "banned" if target_user.status == "active" else "active"
 
+    reason = data.get("reason", "").strip()
     target_user.status = new_status
+    if new_status == "banned":
+        target_user.ban_reason = reason if reason else "Account suspended for violating platform policies."
+    else:
+        target_user.ban_reason = None
+
     db.session.commit()
 
     action_label = "User Banned" if new_status == "banned" else "User Unbanned"
-    log_admin_action(current_user, action_label, f"Changed status of {target_user.email} to {new_status}")
+    details = f"Changed status of {target_user.email} to {new_status}"
+    if target_user.ban_reason:
+        details += f" (Reason: {target_user.ban_reason})"
+    log_admin_action(current_user, action_label, details)
 
     return success_response(target_user.to_dict(), message=f"User status updated to {new_status}")
 
@@ -299,8 +320,8 @@ def ban_unban_user(user_id):
 def delete_admin_user(user_id):
     """Permanently delete a user account."""
     current_user = get_current_user()
-    if not current_user or current_user.role != "super_admin":
-        return error_response("Super Admin authorization required to delete users", 403)
+    if not current_user or current_user.role not in ["admin", "super_admin"]:
+        return error_response("Admin authorization required to delete users", 403)
 
     target_user = User.query.get(user_id)
     if not target_user:
@@ -308,6 +329,9 @@ def delete_admin_user(user_id):
 
     if target_user.id == current_user.id:
         return error_response("You cannot delete your own logged in account", 400)
+
+    if target_user.role in ["admin", "super_admin"] and current_user.role != "super_admin":
+        return error_response("Admins cannot delete other admin accounts", 403)
 
     if target_user.role == "super_admin":
         super_admin_count = User.query.filter_by(role="super_admin").count()

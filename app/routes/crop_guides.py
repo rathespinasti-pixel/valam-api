@@ -48,7 +48,7 @@ def get_crop_guide_detail(guide_id):
 def create_crop_guide():
     """Admin endpoint to create a crop guide."""
     user = get_current_user()
-    if not user or user.role != "admin":
+    if not user or user.role not in ["admin", "super_admin"]:
         return error_response("Admin privileges required", 403)
 
     data = request.get_json(silent=True) or {}
@@ -60,6 +60,8 @@ def create_crop_guide():
         crop_name=crop_name,
         variety=data.get("variety"),
         recommended_season=data.get("recommended_season", "Yala"),
+        planting_method=data.get("planting_method", "Direct Seeding"),
+        fertilizer_type=data.get("fertilizer_type", "Organic"),
         water_requirements=data.get("water_requirements"),
         fertilizer_guidance=data.get("fertilizer_guidance"),
         common_problems=data.get("common_problems"),
@@ -70,6 +72,10 @@ def create_crop_guide():
     stages = data.get("growth_stages")
     if isinstance(stages, list):
         guide.set_growth_stages(stages)
+
+    composts = data.get("stage_composts")
+    if isinstance(composts, list):
+        guide.set_stage_composts(composts)
 
     db.session.add(guide)
     db.session.commit()
@@ -82,7 +88,7 @@ def create_crop_guide():
 def update_crop_guide(guide_id):
     """Admin endpoint to update a crop guide."""
     user = get_current_user()
-    if not user or user.role != "admin":
+    if not user or user.role not in ["admin", "super_admin"]:
         return error_response("Admin privileges required", 403)
 
     guide = CropGuide.query.get(guide_id)
@@ -91,8 +97,9 @@ def update_crop_guide(guide_id):
 
     data = request.get_json(silent=True) or {}
     fields = (
-        "crop_name", "variety", "recommended_season", "water_requirements",
-        "fertilizer_guidance", "common_problems", "basic_solutions", "image_url"
+        "crop_name", "variety", "recommended_season", "planting_method",
+        "fertilizer_type", "water_requirements", "fertilizer_guidance",
+        "common_problems", "basic_solutions", "image_url"
     )
     for field in fields:
         if field in data:
@@ -100,6 +107,9 @@ def update_crop_guide(guide_id):
 
     if "growth_stages" in data and isinstance(data["growth_stages"], list):
         guide.set_growth_stages(data["growth_stages"])
+
+    if "stage_composts" in data and isinstance(data["stage_composts"], list):
+        guide.set_stage_composts(data["stage_composts"])
 
     db.session.commit()
     return success_response(guide.to_dict(), message="Crop guide updated successfully")
@@ -110,7 +120,7 @@ def update_crop_guide(guide_id):
 def delete_crop_guide(guide_id):
     """Admin endpoint to delete a crop guide."""
     user = get_current_user()
-    if not user or user.role != "admin":
+    if not user or user.role not in ["admin", "super_admin"]:
         return error_response("Admin privileges required", 403)
 
     guide = CropGuide.query.get(guide_id)
@@ -120,4 +130,37 @@ def delete_crop_guide(guide_id):
     db.session.delete(guide)
     db.session.commit()
     return success_response(message="Crop guide deleted successfully")
+
+
+@crop_guides_bp.route("/suggest-agronomy", methods=["POST"])
+@jwt_required()
+def suggest_agronomy():
+    """
+    Admin AI & Agricultural API suggestion engine to auto-generate
+    scientific crop lifecycles, water requirements, and 5-stage compost schedules.
+    """
+    user = get_current_user()
+    if not user or user.role not in ["admin", "super_admin"]:
+        return error_response("Admin privileges required", 403)
+
+    data = request.get_json(silent=True) or {}
+    crop_name = data.get("crop_name", "Tomato").strip()
+    variety = data.get("variety", "Standard").strip()
+    planting_method = data.get("planting_method", "Direct Seeding").strip()
+    fertilizer_type = data.get("fertilizer_type", "Organic").strip()
+    season = data.get("season", "Yala & Maha").strip()
+    district = data.get("district", "Vavuniya").strip()
+
+    from app.services.agronomy_engine_service import AgronomyEngineService
+    plan = AgronomyEngineService.suggest_crop_plan(
+        crop_name=crop_name,
+        variety=variety,
+        planting_method=planting_method,
+        fertilizer_type=fertilizer_type,
+        season=season,
+        district=district
+    )
+
+    return success_response(plan, message=f"Agronomic plan suggested for {crop_name}")
+
 

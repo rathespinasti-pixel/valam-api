@@ -133,11 +133,12 @@ def get_plant_info():
 def get_lifecycle_image():
     """
     POST /api/crops/lifecycle-image
-    Fetch or generate dynamic crop lifecycle image.
+    Fetch or generate dynamic crop lifecycle image using Gemini AI with variety & stage isolation.
     """
     data = request.get_json(silent=True) or {}
     crop_name = data.get("crop_name")
     stage = data.get("stage")
+    variety = data.get("variety")
     crop_id = data.get("crop_id")
     crop_age = data.get("crop_age", 30)
     variety = data.get("variety")
@@ -162,6 +163,7 @@ def get_lifecycle_image():
     result = GeminiImageService.get_or_generate_lifecycle_image(
         crop_name=crop_name,
         stage=stage,
+        variety=variety,
         crop_id=crop_id,
         crop_age=crop_age,
         variety=variety,

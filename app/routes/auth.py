@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     create_refresh_token,
     jwt_required,
     get_jwt,
+    get_jwt_identity,
 )
 
 from app.extensions import db, BLACKLISTED_TOKENS
@@ -38,7 +39,7 @@ def register():
 
     district = data.get("district") or data.get("farm_location") or "Vavuniya"
     ds_div = data.get("ds_division") or data.get("district_asc") or "Vavuniya Town"
-    loc_str = f"{ds_div}, {district}"
+    loc_str = farm_location or f"{ds_div}, {district}"
 
     user = User(
         full_name=full_name.strip(),
@@ -97,7 +98,9 @@ def login():
         return error_response("Invalid email or password", 401)
 
     if getattr(user, "status", "active") == "banned":
-        return error_response("Your account has been suspended. Please contact support.", 403)
+        reason = getattr(user, "ban_reason", None)
+        msg = f"Your account has been suspended. Reason: {reason}. Please contact support." if reason else "Your account has been suspended. Please contact support."
+        return error_response(msg, 403)
 
     access_token = create_access_token(identity=str(user.id))
     refresh_token = create_refresh_token(identity=str(user.id))
@@ -123,6 +126,32 @@ def logout():
     jti = get_jwt()["jti"]
     BLACKLISTED_TOKENS.add(jti)
     return success_response(message="Logged out successfully")
+
+
+@auth_bp.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    """
+    Refresh access token using refresh token.
+    ---
+    tags: [Auth]
+    """
+    user_id = get_jwt_identity()
+    user = User.query.get(int(user_id)) if user_id else None
+    if not user:
+        return error_response("User not found", 404)
+
+    if getattr(user, "status", "active") == "banned":
+        return error_response("Your account has been suspended", 403)
+
+    new_access_token = create_access_token(identity=str(user.id))
+    return success_response(
+        {
+            "access_token": new_access_token,
+            "user": user.to_dict(),
+        },
+        message="Token refreshed successfully",
+    )
 
 
 @auth_bp.route("/me", methods=["GET"])

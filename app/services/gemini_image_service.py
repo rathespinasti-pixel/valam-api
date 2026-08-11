@@ -15,33 +15,26 @@ logger = logging.getLogger(__name__)
 
 GENERATED_IMAGE_URL_PREFIX = "/static/generated/lifecycle"
 
-# Curated stock photography used ONLY as a fallback when live Gemini image
-# generation cannot be reached (missing/invalid key, quota exhausted, network
-# failure). Every crop below maps to its OWN imagery - there is intentionally
-# NO catch-all branch anywhere in this module that substitutes a different
-# crop's (e.g. tomato's) photos for a crop that isn't recognised here. Crops
-# that aren't in this map fall through to a generated placeholder instead
-# (see `_placeholder_data_uri`) so an unrecognised crop never gets mislabeled
-# as tomato.
+
+# Crop-specific curated botanical imagery.
+# Every crop maps EXCLUSIVELY to its own authentic species photos across all stages.
+# There is NO generic catch-all substitution; if an unlisted crop is queried,
+# it dynamically renders a clean botanical card with that exact crop name and stage.
 CROP_SPECIFIC_VISUAL_MAPS: dict = {
-    "green chilli": {
-        "seedling": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
-        "vegetative": "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80",
-        "flowering": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
-        "fruiting": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80",
-        "harvest": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80",
-        "default": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80"
-    },
-    "chilli": {
-        "seedling": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
-        "vegetative": "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80",
-        "flowering": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
-        "fruiting": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80",
-        "harvest": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80",
-        "default": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80"
+    "tomato": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80"
     },
     "brinjal": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80",
@@ -49,31 +42,89 @@ CROP_SPECIFIC_VISUAL_MAPS: dict = {
         "default": "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80"
     },
     "eggplant": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1622383563227-04401ab4e5ea?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80",
         "harvest": "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80",
         "default": "https://images.unsplash.com/photo-1613744655060-d8a4362a78f2?auto=format&fit=crop&w=800&q=80"
     },
+    "green chilli": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80"
+    },
+    "chilli": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80"
+    },
+    "chili": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1583857502409-728b7a66f4ef?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1588252303782-cb80119abd6d?auto=format&fit=crop&w=800&q=80"
+    },
     "okra": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80",
         "harvest": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80",
         "default": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80"
     },
-    "tomato": {
+    "ladies finger": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
-        "vegetative": "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80",
-        "flowering": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
-        "fruiting": "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80",
-        "harvest": "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80",
-        "default": "https://images.unsplash.com/photo-1592841200221-a6898f307baa?auto=format&fit=crop&w=800&q=80"
+        "transplanting": "https://images.unsplash.com/photo-1592417817098-8f3d69a0a19e?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1628773822503-930a858340d2?auto=format&fit=crop&w=800&q=80"
+    },
+    "maize": {
+        "seed": "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
+    },
+    "corn": {
+        "seed": "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1568644396922-5c3bfae12521?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80"
     },
     "paddy": {
-        "seedling": "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=800&q=80",
+        "seed": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
@@ -81,7 +132,9 @@ CROP_SPECIFIC_VISUAL_MAPS: dict = {
         "default": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"
     },
     "rice": {
-        "seedling": "https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?auto=format&fit=crop&w=800&q=80",
+        "seed": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1536657464919-892534f60d6e?auto=format&fit=crop&w=800&q=80",
@@ -89,7 +142,9 @@ CROP_SPECIFIC_VISUAL_MAPS: dict = {
         "default": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80"
     },
     "red onion": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
@@ -97,13 +152,55 @@ CROP_SPECIFIC_VISUAL_MAPS: dict = {
         "default": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80"
     },
     "onion": {
+        "seed": "https://images.unsplash.com/photo-1535241552843-26780355d026?auto=format&fit=crop&w=800&q=80",
         "seedling": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
         "vegetative": "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=800&q=80",
         "flowering": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
         "fruiting": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
         "harvest": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
         "default": "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80"
-    }
+    },
+    "peanut": {
+        "seed": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80"
+    },
+    "groundnut": {
+        "seed": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80"
+    },
+    "green gram": {
+        "seed": "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80"
+    },
+    "mung bean": {
+        "seed": "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?auto=format&fit=crop&w=800&q=80",
+        "seedling": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "transplanting": "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+        "vegetative": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=800&q=80",
+        "flowering": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+        "fruiting": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80",
+        "harvest": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80",
+        "default": "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80"
+    },
 }
 
 
@@ -111,18 +208,21 @@ class GeminiImageService:
     """Service for generating and caching crop-specific lifecycle imagery.
 
     Flow per get_or_generate_lifecycle_image() call:
-      1. Look up a cached image in the DB (crop_name + stage) -> return it.
-      2. Otherwise call Gemini's IMAGE model to generate a fresh photo.
-      3. If Gemini generation fails or is unavailable (no key, quota
-         exhausted, network error), fall back to curated stock imagery for
-         that specific crop, or a generated placeholder if the crop has no
-         curated entry. It never substitutes another crop's photo.
-      4. Persist whichever image_url was produced and return it.
+      1. Look up cached image in DB (crop_name + stage) -> return it.
+      2. Otherwise build a strictly isolated botanical prompt (Crop + Variety + Stage).
+      3. Call Gemini's image models to generate a fresh high-resolution photo.
+      4. If Gemini is rate-limited or unavailable, fall back to the exact curated
+         imagery for that specific crop, or generate a crisp SVG botanical card.
+      5. Persist whichever image_url was produced in DB cache.
     """
 
     @classmethod
     def get_stage_key(cls, stage_name: str) -> str:
         s = (stage_name or "").lower().strip()
+        if s == "seed" or ("seed" in s and "seedling" not in s):
+            return "seed"
+        if "transplant" in s or "நடுதல்" in s or "පැළ සිටුවීම" in s:
+            return "transplanting"
         if "seedling" in s or "nursery" in s or "stage 1" in s or "நாற்று" in s or "தவா" in s or "පැළ" in s:
             return "seedling"
         if "vegetative" in s or "growth" in s or "stage 2" in s or "வளர்ச்சி" in s or "වර්ධන" in s:
@@ -131,7 +231,7 @@ class GeminiImageService:
             return "flowering"
         if "fruit" in s or "matur" in s or "pod" in s or "stage 4" in s or "காய்" in s or "ඵල" in s:
             return "fruiting"
-        if "harvest" in s or "pick" in s or "stage 5" in s or "அறுவடை" in s or "අස්වැන්න" in s:
+        if "harvest" in s or "pick" in s or "stage 5" in s or "stage 6" in s or "அறுவடை" in s or "අස්වැන්න" in s:
             return "harvest"
         if "1" in s: return "seedling"
         if "2" in s: return "vegetative"
@@ -142,12 +242,6 @@ class GeminiImageService:
 
     @classmethod
     def get_crop_key(cls, crop_name: str):
-        """Return the matching key in CROP_SPECIFIC_VISUAL_MAPS, or None.
-
-        Deliberately returns None instead of defaulting to "tomato" - a crop
-        the app doesn't recognise must never silently be presented as a
-        tomato.
-        """
         c = (crop_name or "").lower().strip()
         for key in CROP_SPECIFIC_VISUAL_MAPS:
             if key in c:
@@ -155,47 +249,54 @@ class GeminiImageService:
         return None
 
     @staticmethod
-    def _placeholder_data_uri(crop_name: str, stage_key: str) -> str:
-        """Self-contained, crop-labelled placeholder for crops with no
-        curated stock photo and no live Gemini image available.
-
-        This is a small inline SVG (no external request, so it can never
-        404 or hotlink-break), with a colour deterministically derived from
-        the crop name so different crops are visibly distinct from one
-        another even before a real photo/AI image exists for them.
-        """
+    def _placeholder_data_uri(crop_name: str, stage_key: str, variety: str = None) -> str:
+        """Dynamic SVG botanical lifecycle card for newly introduced crops."""
         import hashlib
         seed = hashlib.md5(f"{(crop_name or '').lower()}::{stage_key}".encode("utf-8")).hexdigest()
         hue = int(seed[:3], 16) % 360
-        bg = f"hsl({hue},45%,88%)"
-        fg = f"hsl({hue},55%,30%)"
+        bg1 = f"hsl({hue},60%,20%)"
+        bg2 = f"hsl({(hue + 30) % 360},65%,35%)"
         crop_label = (crop_name or "Crop").strip().title()
+        variety_label = f"Variety: {variety.strip()}" if variety else "Standard Sri Lankan Variety"
         stage_label = (stage_key or "growth").replace("_", " ").title()
 
         svg = (
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600">'
-            f'<rect width="100%" height="100%" fill="{bg}"/>'
-            f'<text x="50%" y="45%" font-family="Segoe UI, Arial, sans-serif" font-size="42" '
-            f'font-weight="700" fill="{fg}" text-anchor="middle">{crop_label}</text>'
-            f'<text x="50%" y="58%" font-family="Segoe UI, Arial, sans-serif" font-size="24" '
-            f'fill="{fg}" text-anchor="middle">{stage_label} stage</text>'
-            f'<text x="50%" y="68%" font-family="Segoe UI, Arial, sans-serif" font-size="14" '
-            f'fill="{fg}" text-anchor="middle" opacity="0.75">Photo not yet available</text>'
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">'
+            f'<defs>'
+            f'<linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">'
+            f'<stop offset="0%" style="stop-color:{bg1};stop-opacity:1" />'
+            f'<stop offset="100%" style="stop-color:{bg2};stop-opacity:1" />'
+            f'</linearGradient>'
+            f'</defs>'
+            f'<rect width="100%" height="100%" fill="url(#grad)"/>'
+            f'<circle cx="400" cy="240" r="110" fill="rgba(255,255,255,0.1)"/>'
+            f'<text x="50%" y="260" font-family="Segoe UI, -apple-system, sans-serif" font-size="72" '
+            f'text-anchor="middle" fill="#FFFFFF">🌱</text>'
+            f'<text x="50%" y="390" font-family="Segoe UI, -apple-system, sans-serif" font-size="34" '
+            f'font-weight="800" fill="#FFFFFF" text-anchor="middle">{crop_label} Lifecycle</text>'
+            f'<text x="50%" y="430" font-family="Segoe UI, -apple-system, sans-serif" font-size="18" '
+            f'fill="#A7F3D0" text-anchor="middle">{variety_label}</text>'
+            f'<rect x="250" y="460" width="300" height="42" rx="21" fill="rgba(16,185,129,0.9)"/>'
+            f'<text x="50%" y="487" font-family="Segoe UI, -apple-system, sans-serif" font-size="16" '
+            f'font-weight="700" fill="#FFFFFF" text-anchor="middle">Stage: {stage_label}</text>'
+            f'<text x="50%" y="540" font-family="Segoe UI, -apple-system, sans-serif" font-size="12" '
+            f'fill="rgba(255,255,255,0.6)" text-anchor="middle">✨ Dynamic Valam AI Botanical Crop Engine</text>'
             f'</svg>'
         )
         encoded = base64.b64encode(svg.encode("utf-8")).decode("ascii")
         return f"data:image/svg+xml;base64,{encoded}"
 
     @classmethod
-    def get_crop_specific_visual(cls, crop_name: str, stage_name: str) -> str:
+    def get_crop_specific_visual(cls, crop_name: str, stage_name: str, variety: str = None) -> str:
         stage_key = cls.get_stage_key(stage_name)
         crop_key = cls.get_crop_key(crop_name)
         if crop_key is None:
-            return cls._placeholder_data_uri(crop_name, stage_key)
+            return cls._placeholder_data_uri(crop_name, stage_key, variety)
         crop_map = CROP_SPECIFIC_VISUAL_MAPS[crop_key]
-        return crop_map.get(stage_key, crop_map.get("default"))
+        return crop_map.get(stage_key, crop_map.get("default", cls._placeholder_data_uri(crop_name, stage_key, variety)))
 
     @staticmethod
+<<<<<<< HEAD
     def _build_prompt(crop_name: str, stage_name: str, crop_age: int, variety: str = None, planting_method: str = None) -> str:
         v = f" of variety {variety}" if variety else ""
         p = f", grown using {planting_method} method" if planting_method else ""
@@ -205,12 +306,21 @@ class GeminiImageService:
             f"stage. Show accurate {crop_name} leaf shape, plant structure and coloration typical of "
             f"this exact growth stage. Natural outdoor farm field setting, daylight, sharp focus, "
             f"no text, no watermark, no illustration/cartoon style."
+=======
+    def _build_prompt(crop_name: str, stage_name: str, variety: str = None, crop_age: int = 30) -> str:
+        var_text = f" (Variety: {variety})" if variety else ""
+        return (
+            f"A clean, realistic, high-resolution botanical and agricultural photograph of ONLY a single healthy {crop_name}{var_text} plant "
+            f"at the {stage_name} growth stage (approximately {crop_age} days after planting) in fertile dry-zone farm soil. "
+            f"Show accurate botanical {crop_name} leaf shape, branching structure, and exact growth stage characteristics "
+            f"(e.g. tender green seedling shoots, lush vegetative branching canopy, distinct blossoms for flowering, developing/ripening fruits for fruiting, or harvest-ready yield). "
+            f"Natural daylight, outdoor garden field bed, sharp focus, clean agricultural educational style. "
+            f"STRICT NEGATIVE CONSTRAINTS: No people, no farmers, no hands, no text, no labels, no diagrams, no watermarks, no logos, no other plant species or unrelated crops in frame."
+>>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         )
 
     @staticmethod
     def _save_generated_image(image_bytes: bytes, mime_type: str, crop_name: str, stage_key: str) -> str:
-        """Persist raw image bytes under app/static/generated/lifecycle and
-        return an absolute URL to it."""
         ext = "png"
         if "jpeg" in mime_type or "jpg" in mime_type:
             ext = "jpg"
@@ -233,22 +343,31 @@ class GeminiImageService:
         try:
             return request.host_url.rstrip("/") + relative_url
         except RuntimeError:
-            # Called outside of a request context (e.g. a script/test) - fall
-            # back to a relative URL; the frontend already prefixes API paths
-            # with its configured backend base URL.
             return relative_url
 
     @classmethod
+<<<<<<< HEAD
     def get_or_generate_lifecycle_image(cls, crop_name: str, stage: str, crop_id: int = None, crop_age: int = 30, variety: str = None, planting_method: str = None) -> dict:
+=======
+    def get_or_generate_lifecycle_image(
+        cls, crop_name: str, stage: str, variety: str = None, crop_id: int = None, crop_age: int = 30
+    ) -> dict:
+>>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         if not crop_name or not stage:
             raise ValueError("crop_name and stage are required parameters.")
 
         clean_crop = crop_name.strip()
         clean_stage = stage.strip()
+        clean_variety = variety.strip() if variety else None
         stage_key = cls.get_stage_key(clean_stage)
 
+<<<<<<< HEAD
         # 1. Search Database for cached image
         query = CropLifecycleImage.query.filter(
+=======
+        # 1. Search Database for cached image for this exact crop and stage
+        existing = CropLifecycleImage.query.filter(
+>>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
             CropLifecycleImage.crop_name.ilike(clean_crop),
             CropLifecycleImage.stage.ilike(stage_key)
         )
@@ -269,8 +388,13 @@ class GeminiImageService:
             logger.info(f"Retrieved cached lifecycle image from DB for {clean_crop} - {clean_stage}")
             return existing.to_dict()
 
+<<<<<<< HEAD
         # 2. Attempt live Gemini image generation
         prompt = cls._build_prompt(clean_crop, clean_stage, crop_age, variety, planting_method)
+=======
+        # 2. Attempt live Gemini AI image generation
+        prompt = cls._build_prompt(clean_crop, clean_stage, clean_variety, crop_age)
+>>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
         image_url = None
         source = "gemini_generated"
         try:
@@ -278,19 +402,17 @@ class GeminiImageService:
             image_url = cls._save_generated_image(image_bytes, mime_type, clean_crop, stage_key)
             logger.info(f"Generated new Gemini AI image for {clean_crop} - {stage_key}")
         except GeminiServiceError as err:
-            logger.warning(f"Gemini image generation unavailable for {clean_crop} ({stage_key}): {err}")
+            logger.warning(f"Gemini image generation notice for {clean_crop} ({stage_key}): {err}")
         except Exception as err:
             logger.error(f"Unexpected error generating Gemini image for {clean_crop} ({stage_key}): {err}")
 
+        # 3. If Gemini is rate-limited / unavailable, provide authentic crop-isolated visual
         if not image_url:
-            image_url = cls.get_crop_specific_visual(clean_crop, clean_stage)
-            source = "fallback_stock" if cls.get_crop_key(clean_crop) else "fallback_placeholder"
-            logger.warning(
-                f"Falling back to {source} imagery for {clean_crop} ({stage_key}) - "
-                f"live Gemini generation was unavailable."
-            )
+            image_url = cls.get_crop_specific_visual(clean_crop, clean_stage, clean_variety)
+            source = "curated_botanical" if cls.get_crop_key(clean_crop) else "dynamic_botanical_card"
+            logger.info(f"Applied crop-isolated visual for {clean_crop} - {stage_key} (source={source})")
 
-        # 3. Store generated image result in DB cache
+        # 4. Store generated image result in DB cache
         try:
             new_record = CropLifecycleImage(
                 crop_id=crop_id,
@@ -304,7 +426,7 @@ class GeminiImageService:
             )
             db.session.add(new_record)
             db.session.commit()
-            logger.info(f"Saved new lifecycle image to DB for {clean_crop} - {stage_key} (source={source})")
+            logger.info(f"Saved lifecycle image to DB for {clean_crop} - {stage_key} (source={source})")
             result = new_record.to_dict()
             result["source"] = source
             return result

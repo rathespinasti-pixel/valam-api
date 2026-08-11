@@ -26,7 +26,7 @@ class Config:
     # JWT
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-key")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(
-        minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MINUTES", 60))
+        days=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_DAYS", 7))
     )
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(
         days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 30))
@@ -63,11 +63,21 @@ class Config:
     CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
 
     # CORS
+<<<<<<< HEAD
     # Parse CORS origins from env (comma‑separated) into a list for Flask‑CORS
     origins = os.getenv("CORS_ORIGINS", "*")
     if isinstance(origins, str):
         origins = [o.strip() for o in origins.split(",") if o.strip()]
     CORS_ORIGINS = origins
+=======
+    _raw_cors = os.getenv("CORS_ORIGINS", "*")
+    if _raw_cors == "*":
+        CORS_ORIGINS = "*"
+    elif "," in _raw_cors:
+        CORS_ORIGINS = [origin.strip() for origin in _raw_cors.split(",") if origin.strip()]
+    else:
+        CORS_ORIGINS = [_raw_cors.strip()] if _raw_cors.strip() else "*"
+>>>>>>> 147f04e259b67b327a163b3f29430eacb559a2d6
 
     # Swagger
     SWAGGER = {
