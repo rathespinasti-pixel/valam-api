@@ -71,6 +71,9 @@ class FarmingAssistantService:
 
             if crops and len(crops) > 0:
                 context_lines.append(f"\n• Currently Active Cultivated Crops ({len(crops)} crops):")
+                if len(crops) == 1 and crops[0].get("is_focused"):
+                    context_lines.append(f"EXCLUSIVE SELECTED CROP CONTEXT: {crops[0].get('crop_name')}")
+                    context_lines.append("Answer ONLY for this crop. Do not mention, compare, or give advice for any other registered crop.")
                 for i, c in enumerate(crops, 1):
                     days_str = f", {c['days_after_planting']} days after planting" if c.get('days_after_planting') is not None else ""
                     context_lines.append(
@@ -95,9 +98,9 @@ class FarmingAssistantService:
             context_lines.append("======================================================================")
             context_lines.append("CRITICAL INSTRUCTIONS FOR CONTEXT-AWARENESS:")
             context_lines.append("1. NEVER ask the farmer what they are growing, when they started, their location, or land size. You ALREADY have their live database records above.")
-            context_lines.append("2. Directly tailor your answer to their specific active crop(s), variety, age in days, and current growth stage.")
-            context_lines.append("3. If the user asks a general question like 'When do I fertilize?' or 'How much water do I need?', IMMEDIATELY answer for their active crop and current growth stage without asking for clarification.")
-            context_lines.append("4. If a focused crop is provided from a dashboard click, answer for that crop first. For example, if the focused crop is Tomato answer tomato questions; if it is Chilli/Chili answer chilli questions.")
+            context_lines.append("2. If the context says EXCLUSIVE SELECTED CROP CONTEXT, answer ONLY for that crop and do not mention other crops at all.")
+            context_lines.append("3. If the farmer's question names a crop such as maize, tomato, chilli/chili, or pumpkin, answer ONLY for that named crop.")
+            context_lines.append("4. If the user asks a general question like 'When do I fertilize?' or 'How much water do I need?', answer for the selected/focused crop and its current growth stage without asking for clarification.")
             context_lines.append("5. Keep explanations practical, structured, and warm.")
             context_lines.append("======================================================================\n")
 
@@ -106,7 +109,7 @@ class FarmingAssistantService:
         prompt = f"""{context_block}
 Farmer Question: "{question.strip()}"
 
-Please answer as the Valam Agricultural AI Assistant. Follow all instructions and directly use the farmer's active crop context.
+Please answer as the Valam Agricultural AI Assistant. Follow all instructions and directly use the selected crop context.
 Give clear, actionable step-by-step guidance.
 """
         # Get raw response from Gemini

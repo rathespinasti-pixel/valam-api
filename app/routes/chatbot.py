@@ -8,6 +8,26 @@ from app.utils.ai_client import ask_ai_assistant
 
 chatbot_bp = Blueprint("chatbot", __name__)
 
+QUESTION_CROP_ALIASES = [
+    ("maize", ("maize", "corn")),
+    ("tomato", ("tomato",)),
+    ("chilli", ("chilli", "chili")),
+    ("pumpkin", ("pumpkin",)),
+]
+
+
+def _find_question_crop_alias(question):
+    q = (question or "").lower()
+    for _, aliases in QUESTION_CROP_ALIASES:
+        if any(alias in q for alias in aliases):
+            return aliases
+    return None
+
+
+def _crop_matches_aliases(crop, aliases):
+    crop_name = (crop.get("crop_name") or "").lower()
+    return any(alias in crop_name for alias in aliases)
+
 
 @chatbot_bp.route("/ask", methods=["POST"])
 @jwt_required()
@@ -36,6 +56,7 @@ def ask():
     # 1. Fetch all active crops for this user from database
     user_crops = Crop.query.filter_by(user_id=user.id, is_active=True).all()
     focused_crop_id = page_context.get("focused_crop_id")
+    question_crop_aliases = _find_question_crop_alias(question)
     crops_context = []
     today = date.today()
     for c in user_crops:
@@ -66,12 +87,29 @@ def ask():
             "notes": getattr(c, "notes", None)
         })
 
-    if focused_crop_id:
+    focused_crop = None
+    if question_crop_aliases:
+        focused_crop = next((crop for crop in crops_context if _crop_matches_aliases(crop, question_crop_aliases)), None)
+
+    if focused_crop is None and focused_crop_id:
         try:
             focused_crop_id = int(focused_crop_id)
-            crops_context.sort(key=lambda crop: 0 if crop.get("id") == focused_crop_id else 1)
+            focused_crop = next((crop for crop in crops_context if crop.get("id") == focused_crop_id), None)
         except (TypeError, ValueError):
             pass
+
+    if focused_crop:
+        focused_crop["is_focused"] = True
+        crops_context = [focused_crop]
+        if isinstance(page_context, dict):
+            page_context = dict(page_context)
+            page_context.pop("active_crops", None)
+            page_context["focused_crop"] = {
+                **focused_crop,
+                **(page_context.get("focused_crop") or {}),
+                "crop_name": focused_crop.get("crop_name"),
+            }
+            page_context["exclusive_crop_context"] = True
 
     # 2. Extract Farmer Profile Metadata
     user_profile = {
