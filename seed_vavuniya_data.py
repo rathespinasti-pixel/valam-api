@@ -86,12 +86,17 @@ def seed_database():
             print(f"Note on column migration: {e}")
 
         # Seed Default Super Admin Account
-        admin_user = User.query.filter_by(email="admin@gmail.com").first()
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@valam.lk")
+        admin_password = os.getenv("ADMIN_PASSWORD", "ValamAdmin@2026")
+        admin_name = os.getenv("ADMIN_NAME", "Valam Administrator")
+        admin_phone = os.getenv("ADMIN_PHONE", "+94770000000")
+
+        admin_user = User.query.filter_by(email=admin_email).first()
         if not admin_user:
             admin_user = User(
-                full_name="Super Admin",
-                email="admin@gmail.com",
-                phone="+94 77 000 0000",
+                full_name=admin_name,
+                email=admin_email,
+                phone=admin_phone,
                 farm_location="Vavuniya, LK",
                 farm_size_acres=5.0,
                 role="super_admin",
@@ -100,16 +105,16 @@ def seed_database():
                 ds_division="Vavuniya Town",
                 onboarding_completed=True,
             )
-            admin_user.set_password("Admin@1234")
+            admin_user.set_password(admin_password)
             db.session.add(admin_user)
             db.session.commit()
-            print("Seeded Super Admin account: admin@gmail.com / Admin@1234")
+            print(f"Seeded Super Admin account: {admin_email}")
         else:
             admin_user.role = "super_admin"
             admin_user.status = "active"
-            admin_user.set_password("Admin@1234")
+            admin_user.set_password(admin_password)
             db.session.commit()
-            print("Super Admin account verified & password set: admin@gmail.com / Admin@1234")
+            print(f"Super Admin account verified for: {admin_email}")
 
         # Check or create default admin/farmer user
         user = User.query.filter_by(email="demo@valam.lk").first()
