@@ -20,6 +20,9 @@ from app.routes.ai import ai_bp
 from app.routes.subscription import subscription_bp
 from app.routes.marketplace import marketplace_bp
 from app.routes.managed_crops import managed_crops_bp, public_catalogue_bp
+from app.routes.cloud_market import cloud_market_bp
+from app.routes.direct_chat import direct_chat_bp
+from app.routes.user_notifications import user_notifications_bp
 
 def create_app(config_name="development"):
     app = Flask(__name__)
@@ -66,6 +69,9 @@ def create_app(config_name="development"):
     app.register_blueprint(marketplace_bp, url_prefix="/api/marketplace")
     app.register_blueprint(managed_crops_bp, url_prefix="/api/admin/crops")
     app.register_blueprint(public_catalogue_bp, url_prefix="/api/catalogue/crops")
+    app.register_blueprint(cloud_market_bp, url_prefix="/api/market")
+    app.register_blueprint(direct_chat_bp, url_prefix="/api/chat")
+    app.register_blueprint(user_notifications_bp, url_prefix="/api/user-notifications")
 
     # JWT token blacklist handling
     @jwt.token_in_blocklist_loader

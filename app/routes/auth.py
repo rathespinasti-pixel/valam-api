@@ -17,7 +17,7 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/register", methods=["POST"])
 def register():
     """
-    Register a new farmer account.
+    Register a new farmer or consumer account.
     ---
     tags: [Auth]
     """
@@ -40,23 +40,27 @@ def register():
     district = data.get("district") or data.get("farm_location") or "Vavuniya"
     ds_div = data.get("ds_division") or data.get("district_asc") or "Vavuniya Town"
     loc_str = farm_location or f"{ds_div}, {district}"
+    req_role = (data.get("role") or "farmer").lower().strip()
+    user_role = "consumer" if req_role in ["consumer", "buyer"] else "farmer"
 
     user = User(
         full_name=full_name.strip(),
         email=email.lower().strip(),
         phone=data.get("phone"),
+        role=user_role,
         farm_location=loc_str,
-        farm_size_acres=data.get("land_size") or data.get("farm_size_acres") or 1.0,
-        farming_category=data.get("farming_category") or data.get("farmer_type") or "Farmer",
+        delivery_address=data.get("delivery_address") or loc_str,
+        farm_size_acres=0.0 if user_role == "consumer" else (data.get("land_size") or data.get("farm_size_acres") or 1.0),
+        farming_category="Consumer" if user_role == "consumer" else (data.get("farming_category") or data.get("farmer_type") or "Farmer"),
         district=district,
         ds_division=ds_div,
         gn_division=data.get("gn_division"),
-        land_size=data.get("land_size") or data.get("farm_size_acres") or 1.0,
+        land_size=0.0 if user_role == "consumer" else (data.get("land_size") or data.get("farm_size_acres") or 1.0),
         land_size_unit=data.get("land_size_unit") or "Acres",
         irrigation_preference=data.get("irrigation_preference") or "Drip Irrigation",
         fertilizer_preference=data.get("fertilizer_preference") or "Organic",
         preferred_language=data.get("preferred_language") or "en",
-        farmer_type=data.get("farming_category") or "Farmer",
+        farmer_type="Consumer" if user_role == "consumer" else (data.get("farming_category") or "Farmer"),
         district_asc=ds_div,
         onboarding_completed=True,
     )
@@ -181,7 +185,7 @@ def update_profile():
         return error_response("User not found", 404)
 
     data = request.get_json(silent=True) or {}
-    for field in ("full_name", "phone", "farm_location", "farm_size_acres"):
+    for field in ("full_name", "phone", "farm_location", "farm_size_acres", "delivery_address", "preferred_language", "district", "ds_division", "farming_category", "land_size", "land_size_unit"):
         if field in data:
             setattr(user, field, data[field])
 

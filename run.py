@@ -60,6 +60,7 @@ def init_db():
                     ("farming_experience", "VARCHAR(50)"),
                     ("main_crops_grown", "VARCHAR(255)"),
                     ("preferred_language", "VARCHAR(10) DEFAULT 'en'"),
+                    ("delivery_address", "VARCHAR(255)"),
                     ("onboarding_completed", "BOOLEAN DEFAULT FALSE"),
                     ("ban_reason", "TEXT"),
                 ]

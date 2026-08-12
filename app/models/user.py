@@ -30,6 +30,7 @@ class User(db.Model):
     farming_experience = db.Column(db.String(50), nullable=True)
     main_crops_grown = db.Column(db.String(255), nullable=True)
     preferred_language = db.Column(db.String(10), nullable=True, default="en")
+    delivery_address = db.Column(db.String(255), nullable=True)
     onboarding_completed = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -73,6 +74,7 @@ class User(db.Model):
             "farming_experience": self.farming_experience,
             "main_crops_grown": self.main_crops_grown,
             "preferred_language": self.preferred_language or "en",
+            "delivery_address": self.delivery_address,
             "onboarding_completed": self.onboarding_completed,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
