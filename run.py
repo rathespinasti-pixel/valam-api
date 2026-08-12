@@ -5,7 +5,9 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from app import create_app
 from app.extensions import db
 
-config_name = os.getenv("FLASK_CONFIG", "development")
+config_name = os.getenv(
+    "FLASK_CONFIG", "production" if os.getenv("RAILWAY_ENVIRONMENT") else "development"
+)
 app = create_app(config_name)
 
 
@@ -17,6 +19,12 @@ def init_db():
             with db.engine.connect() as connection:
                 pass
         except (OperationalError, SQLAlchemyError, Exception) as e:
+            if config_name == "production" or os.getenv("RAILWAY_ENVIRONMENT"):
+                raise RuntimeError(
+                    "Database connection failed. Configure DATABASE_URL, MYSQL_URL, "
+                    "or Railway's MYSQLHOST/MYSQLUSER/MYSQLPASSWORD/MYSQLDATABASE variables."
+                ) from e
+
             print("=" * 70)
             print("MYSQL CONNECTION FAILED - Falling back to local SQLite database...")
             print(f"Error: {e}")
@@ -118,7 +126,11 @@ def init_db():
             print("Database connected. All tables ready.")
 
 
+# Gunicorn imports ``app`` and does not execute the __main__ block, so database
+# setup must run during module import as well as local development startup.
+init_db()
+
+
 if __name__ == "__main__":
-    init_db()
     port = int(os.getenv("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=app.config.get("DEBUG", False))

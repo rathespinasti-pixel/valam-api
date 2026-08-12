@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+from sqlalchemy import text
 
 from app.config import config_by_name
 from app.extensions import db, migrate, jwt, cors, swagger, BLACKLISTED_TOKENS
@@ -100,7 +101,20 @@ def create_app(config_name="development"):
 
     @app.route("/api/health")
     def health_check():
-        return jsonify({"success": True, "message": "API is running"}), 200
+        try:
+            db.session.execute(text("SELECT 1"))
+            return jsonify({
+                "success": True,
+                "message": "API is running",
+                "database": "connected",
+            }), 200
+        except Exception:
+            db.session.rollback()
+            return jsonify({
+                "success": False,
+                "message": "API is running but the database is unavailable",
+                "database": "disconnected",
+            }), 503
 
     @app.errorhandler(404)
     def not_found(e):

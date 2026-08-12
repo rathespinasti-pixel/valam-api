@@ -1,6 +1,7 @@
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
 load_dotenv()
 
@@ -9,18 +10,25 @@ class Config:
     """Base configuration shared across environments."""
 
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-    DB_USER = os.getenv("DB_USER", "root")
-    DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
-    DB_HOST = os.getenv("DB_HOST", "localhost")
-    DB_NAME =  os.getenv("DB_NAME", "solar_farming_db")
-    DB_PORT = os.getenv("DB_PORT", "3306")
+    # Accept both the app's local names and Railway's MySQL plugin names.
+    DB_USER = os.getenv("DB_USER") or os.getenv("MYSQLUSER", "root")
+    DB_PASSWORD = os.getenv("DB_PASSWORD") or os.getenv("MYSQLPASSWORD", "password")
+    DB_HOST = os.getenv("DB_HOST") or os.getenv("MYSQLHOST", "localhost")
+    DB_NAME = os.getenv("DB_NAME") or os.getenv("MYSQLDATABASE", "solar_farming_db")
+    DB_PORT = os.getenv("DB_PORT") or os.getenv("MYSQLPORT", "3306")
 
-    # Database
-    # SQLALCHEMY_DATABASE_URI = os.getenv(
-    #     "DATABASE_URL",
-    #     "mysql+pymysql://root:password@localhost:3306/solar_farming_db",
-    # )
-    SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    # Railway commonly supplies DATABASE_URL or MYSQL_URL. Normalize legacy
+    # schemes so SQLAlchemy selects a driver installed by this project.
+    _database_url = (os.getenv("DATABASE_URL") or os.getenv("MYSQL_URL") or "").strip()
+    if _database_url.startswith("mysql://"):
+        _database_url = _database_url.replace("mysql://", "mysql+pymysql://", 1)
+    elif _database_url.startswith("postgres://"):
+        _database_url = _database_url.replace("postgres://", "postgresql://", 1)
+
+    SQLALCHEMY_DATABASE_URI = _database_url or (
+        f"mysql+pymysql://{quote_plus(DB_USER)}:{quote_plus(DB_PASSWORD)}@"
+        f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT
@@ -59,12 +67,16 @@ class Config:
 
     # CORS
     _raw_cors = os.getenv("CORS_ORIGINS", "*")
+    _vercel_origin = r"https://.*\.vercel\.app"
     if _raw_cors == "*":
         CORS_ORIGINS = "*"
     elif "," in _raw_cors:
         CORS_ORIGINS = [origin.strip() for origin in _raw_cors.split(",") if origin.strip()]
+        CORS_ORIGINS.append(_vercel_origin)
     else:
-        CORS_ORIGINS = [_raw_cors.strip()] if _raw_cors.strip() else "*"
+        CORS_ORIGINS = (
+            [_raw_cors.strip(), _vercel_origin] if _raw_cors.strip() else "*"
+        )
 
     # Swagger
     SWAGGER = {
